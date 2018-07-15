@@ -1,0 +1,6 @@
+{
+    "watchFolder": "style",
+    "outputFolder": "style",
+    "sourceMap": true,
+    "minified": true
+}
