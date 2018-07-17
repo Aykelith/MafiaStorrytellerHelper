@@ -2,36 +2,47 @@ const GAME_STEP = {
     WELCOME: 0,
     GAME_SETUP: 2,
     PLAYERS_SETUP: 3,
-    NIGHT: 4
+    NIGHT: 4,
+
+    GENERATOR: 99
 }
 
 const PLAYER_ROLES = {
     Mafia: {
-        text: "Mafiot"
+        text: "Mafiot",
+        id: 0
     },
     Godfather: {
-        text: "Capul mafiei"
+        text: "Capul mafiei",
+        id: 1
     },
     Serialkiller: {
-        text: "Serial killer"
+        text: "Serial killer",
+        id: 2
     },
     Veteran: {
-        text: "Veteran"
+        text: "Veteran",
+        id: 3
     },
     Vigilante: {
-        text: "Vigilentul"
+        text: "Vigilentul",
+        id: 4
     },
     Policeman: {
-        text: "Politist"
+        text: "Politist",
+        id: 5
     },
     Doctor: {
-        text: "Medic"
+        text: "Medic",
+        id: 6
     },
     Mayor: {
-        text: "Primar"
+        text: "Primar",
+        id: 7
     },
     Clown: {
-        text: "Mascarici"
+        text: "Mascarici",
+        id: 8
     }
 };
 
@@ -103,6 +114,15 @@ const DEFAULT_PLAYER = {
     alive: true
 };
 
+function createHashFromPlayers(players) {
+    let hash = "";
+    for (let i=0, length=players.length; i < length; ++i) {
+        hash += players[i].name + "|" + PLAYER_ROLES[players[i].role].id + "|" + (players[i].alive ? "1" : "0") + "&";
+    }
+
+    return hash;
+}
+
 class WelcomePage extends React.Component {
     render() {
         return (
@@ -117,6 +137,14 @@ class WelcomePage extends React.Component {
                     }}
                 >
                     Start
+                </button>
+                <button
+                    id="generatorBtn"
+                    onClick={() => {
+
+                    }}
+                >
+                    Generator
                 </button>
             </div>
         );
@@ -163,8 +191,8 @@ class PlayersSetupPage extends React.Component {
         super(props);
 
         this.props.parent.state.players = [
-            { name: "Mafia #1", role: "Mafia" },
-            { name: "Mafia #2", role: "Mafia" },
+            { name: "Mafia 1", role: "Mafia" },
+            { name: "Mafia 2", role: "Mafia" },
             { name: "Godfather", role: "Godfather" },
             { name: "Policeman", role: "Policeman" },
             { name: "Veteran", role: "Veteran" },
@@ -271,6 +299,10 @@ class NightPage extends React.Component {
         this.renderMafia = this.renderMafia.bind(this);
     }
 
+    componentDidMount() {
+        this.props.parent.createHash();
+    }
+
     renderPlayer(player, onClick) {
         return (
             <div onClick={onClick} className={`${player.role}`}>
@@ -322,6 +354,9 @@ class NightPage extends React.Component {
     }
 
     renderNight() {
+        console.log(this.props.parent.state.players
+            .filter(player => NIGHT_ROUND._roleIsForThisRound(this.props.parent.state.nightCurrentState, player.role) && player.alive));
+            
         return (
             <div id="nightPage_night" className="main">
                 <h1>{NIGHT_ROUND._toRoundText(this.props.parent.state.nightCurrentState)}</h1>
@@ -348,6 +383,23 @@ class NightPage extends React.Component {
     }
 }
 
+class GeneratorPage extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        <div id="generatorPage" className="main">
+            <h2>Generator</h2>
+            <div id="presetCnt">
+                <div id="presetSelectCnt">
+                    <span>Preset:</span>
+                </div>
+            </div>
+        </div>
+    }
+};
+
 class MainPage extends React.Component {
     constructor(props) {
         super(props);
@@ -363,6 +415,40 @@ class MainPage extends React.Component {
 
             nightCurrentState: null
         };
+
+        this.createHash = this.createHash.bind(this);
+    }
+
+    componentDidMount() {
+        let token1 = window.location.hash.indexOf("&&");
+
+        if (token1 == -1) return; 
+
+        let playersString = decodeURIComponent(window.location.hash).substring(1, window.location.hash.indexOf("&&")-4);
+        console.log("playersString", playersString);
+
+        let players = playersString.split("&");
+        for (let i=0, length=players.length; i < length; ++i) {
+            let chars = players[i].split("|");
+
+            this.state.players.push({
+                name: chars[0],
+                role: Object.keys(PLAYER_ROLES).filter(role => PLAYER_ROLES[role].id == chars[1])[0],
+                alive: chars[2] == "1" ? true : false
+            });
+        }
+
+        console.log(this.state.players);
+
+        let token2 = window.location.hash.indexOf("&&", token1);
+        this.state.day = parseInt(window.location.hash.substring(token1, token2 - 4));
+
+        this.state.gameStep = GAME_STEP.NIGHT;
+        this.setState(this.state);
+    }
+
+    createHash() {
+        window.location.hash = createHashFromPlayers(this.state.players) + "&" + this.state.dayNumber + "&&";
     }
 
     render() {
@@ -371,6 +457,7 @@ class MainPage extends React.Component {
         else if (this.state.gameStep == GAME_STEP.GAME_SETUP) displayBlock = <GameSetupPage parent={this}/>
         else if (this.state.gameStep == GAME_STEP.PLAYERS_SETUP) displayBlock = <PlayersSetupPage parent={this}/>
         else if (this.state.gameStep == GAME_STEP.NIGHT) displayBlock = <NightPage parent={this}/>
+        else if (this.state.gameStep == GAME_STEP.GENERATOR) displayBlock = <GeneratorPage parent={this}/>
 
         return displayBlock;
     }
