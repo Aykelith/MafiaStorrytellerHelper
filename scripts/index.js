@@ -305,7 +305,7 @@ class NightPage extends React.Component {
 
     renderPlayer(player, onClick) {
         return (
-            <div onClick={onClick} className={`${player.role}`}>
+            <div onClick={onClick} className={`${player.role} ${player.selectedClassName || ""}`}>
                 <div>{player.name}</div>
                 <div>{PLAYER_ROLES[player.role].text}</div>
             </div>
@@ -318,9 +318,12 @@ class NightPage extends React.Component {
                 <h2 id="dayNumber">Ziua {this.props.parent.state.dayNumber}</h2>
                 <div id="playersStatusCnt">
                     <h3>Lista jucatori</h3>
+                    <h4>(selecteaza un jucator pentru a-l linsa)</h4>
                     {
                         this.props.parent.state.players.map((player, index) => {
-                            return this.renderPlayer(player);
+                            return this.renderPlayer(player, () => {
+                                player.selectedClassName = "selected";
+                            });
                         })
                     }
                 </div>
