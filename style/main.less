@@ -166,43 +166,55 @@ button {
     background-color: #d8d8d8 !important;
 }
 
+.playersStatusCnt {
+    background-color: #f0f0f0;
+    padding: 10px;
+
+    > h3 {
+        margin: 0;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    > h4 {
+        text-align: center;
+        margin: -14px 0 15px 0;
+    }
+
+    > div {
+        padding: 20px 10px;
+        display: flex;
+        justify-content: space-between;
+        background-color: #fff;
+
+        &:not(:last-child) {
+            margin-bottom: 12px;
+        }
+    }
+
+    .selected {
+        border: 5px solid #f00 !important;
+    }
+}
+
 #nightPage_day {
     #dayNumber {
         text-align: center;
     }
 
-    #playersStatusCnt {
-        background-color: #f0f0f0;
-        padding: 10px;
-
-        > h3 {
-            margin: 0;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        > h4 {
-            text-align: center;
-            margin: -14px 0 15px 0;
-        }
-
-        > div {
-            padding: 20px 10px;
-            display: flex;
-            justify-content: space-between;
-            background-color: #fff;
-
-            &:not(:last-child) {
-                margin-bottom: 12px;
-            }
-        }
-
-        .selected {
-            background-color: red !important;
-        }
-    }
-
     #startNightBtn {
         margin-top: 20px;
+    }
+}
+
+#nightPage_night {
+    > h1 {
+        text-align: center;
+    }
+
+    #mafiaStep {
+        .playersStatusCnt {
+            margin-top: 30px;
+        }
     }
 }

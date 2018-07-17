@@ -114,6 +114,10 @@ const DEFAULT_PLAYER = {
     alive: true
 };
 
+const DEFAULT_GAME_SETTINGS = {
+
+};
+
 function createHashFromPlayers(players) {
     let hash = "";
     for (let i=0, length=players.length; i < length; ++i) {
@@ -191,16 +195,16 @@ class PlayersSetupPage extends React.Component {
         super(props);
 
         this.props.parent.state.players = [
-            { name: "Mafia 1", role: "Mafia" },
-            { name: "Mafia 2", role: "Mafia" },
-            { name: "Godfather", role: "Godfather" },
-            { name: "Policeman", role: "Policeman" },
-            { name: "Veteran", role: "Veteran" },
-            { name: "Vigilante", role: "Vigilante" },
-            { name: "Doctor", role: "Doctor" },
-            { name: "Mayor", role: "Mayor" },
-            { name: "Clown", role: "Clown" },
-            { name: "Serialkiller", role: "Serialkiller" }
+            { name: "Mafia 1", role: "Mafia", alive: true },
+            { name: "Mafia 2", role: "Mafia", alive: true },
+            { name: "Godfather", role: "Godfather", alive: true },
+            { name: "Policeman", role: "Policeman", alive: true },
+            { name: "Veteran", role: "Veteran", alive: true },
+            { name: "Vigilante", role: "Vigilante", alive: true },
+            { name: "Doctor", role: "Doctor", alive: true },
+            { name: "Mayor", role: "Mayor", alive: true },
+            { name: "Clown", role: "Clown", alive: true },
+            { name: "Serialkiller", role: "Serialkiller", alive: true }
         ]
     }
     
@@ -291,21 +295,24 @@ class NightPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {};
+
         this.renderPlayer = this.renderPlayer.bind(this);
 
         this.renderDay = this.renderDay.bind(this);
         this.renderNight = this.renderNight.bind(this);
 
-        this.renderMafia = this.renderMafia.bind(this);
+        this.renderSelectable = this.renderSelectable.bind(this);
+        this.renderVeteran = this.renderVeteran.bind(this);
     }
 
     componentDidMount() {
         this.props.parent.createHash();
     }
 
-    renderPlayer(player, onClick) {
+    renderPlayer(player, className, onClick) {
         return (
-            <div onClick={onClick} className={`${player.role} ${player.selectedClassName || ""}`}>
+            <div onClick={onClick} className={`${player.role} ${className || ""}`}>
                 <div>{player.name}</div>
                 <div>{PLAYER_ROLES[player.role].text}</div>
             </div>
@@ -316,13 +323,14 @@ class NightPage extends React.Component {
         return (
             <div id="nightPage_day" className="main">
                 <h2 id="dayNumber">Ziua {this.props.parent.state.dayNumber}</h2>
-                <div id="playersStatusCnt">
+                <div className="playersStatusCnt">
                     <h3>Lista jucatori</h3>
                     <h4>(selecteaza un jucator pentru a-l linsa)</h4>
                     {
                         this.props.parent.state.players.map((player, index) => {
-                            return this.renderPlayer(player, () => {
-                                player.selectedClassName = "selected";
+                            return this.renderPlayer(player, this.state.selectedPlayer == index && "selected", () => {
+                                this.state.selectedPlayer = this.state.selectedPlayer == index ? null : index;
+                                this.setState(this.state);
                             });
                         })
                     }
@@ -330,9 +338,13 @@ class NightPage extends React.Component {
                 <button
                     id="startNightBtn"
                     onClick={e => {
+                        this.state.selectedPlayer = null;
+
                         this.props.parent.state.isNight = true;
                         ++this.props.parent.state.dayNumber;
-                        this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[0]
+                        this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[0];
+                        this.props.parent.state.nightCurrentOrderIndex = 0;
+                        this.props.parent.state.night = {};
                         this.props.parent.setState(this.props.parent.state);
                     }}
                 >
@@ -342,16 +354,35 @@ class NightPage extends React.Component {
         )
     }
 
-    renderMafia() {
+    renderSelectable(settings) {
         return (
             <div id="mafiaStep" className="nightStep">
-                {
-                    this.props.parent.state.players
-                        .filter(player => !NIGHT_ROUND._roleIsForThisRound(this.props.parent.state.nightCurrentState, player.role) && player.alive)
-                        .map((player, index) => {
-                        return this.renderPlayer(player);
-                    })
-                }
+                <div className="playersStatusCnt">
+                    <h3>{settings.title}</h3>
+                    <h4>{settings.subtitle}</h4>
+                    {
+                        this.props.parent.state.players
+                            .filter(player => !NIGHT_ROUND._roleIsForThisRound(this.props.parent.state.nightCurrentState, player.role) && player.alive)
+                            .map((player, index) => {
+                            return this.renderPlayer(player, this.state.selectedPlayer == index && "selected", () => {
+                                this.state.selectedPlayer = this.state.selectedPlayer == index ? null : index;
+                                this.setState(this.state);
+                            });
+                        })
+                    }
+                </div>
+            </div>
+        )
+    }
+
+    renderVeteran() {
+        return (
+            <div id="veteranStep" className="nightStep">
+                <h3>Vrei sa folosesti glontul?</h3>
+                <div>
+                    <button className="yes">Da</button>
+                    <button className="no">Nu</button>
+                </div>
             </div>
         )
     }
@@ -363,7 +394,8 @@ class NightPage extends React.Component {
         return (
             <div id="nightPage_night" className="main">
                 <h1>{NIGHT_ROUND._toRoundText(this.props.parent.state.nightCurrentState)}</h1>
-                <div id="selectedStepPlayersCnt">
+                <div className="playersStatusCnt">
+                    <h3>Lista jucatori</h3>
                     {
                         this.props.parent.state.players
                             .filter(player => NIGHT_ROUND._roleIsForThisRound(this.props.parent.state.nightCurrentState, player.role) && player.alive)
@@ -372,8 +404,81 @@ class NightPage extends React.Component {
                         })
                     }
                 </div>
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia
+                    &&
+                    this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", required: true })
+                }
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Serialkiller
+                    &&
+                    this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)" })
+                }
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Police
+                    &&
+                    this.renderSelectable({ title: "Posibili criminali", subtitle: "(selecteaza un jucator)" })
+                }
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante
+                    &&
+                    this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)" })
+                }
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran
+                    &&
+                    this.renderVeteran()
+                }
+                {
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor
+                    &&
+                    this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)" })
+                }
                 <button 
                     id="nextState"
+                    onClick={() => {
+                        if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia) {
+                            if (this.state.selectedPlayer == null) {
+                                return alert("Selecteaza un jucator");
+                            }
+
+                            this.props.parent.state.night.mafiaSelected = this.state.selectedPlayer;
+                        } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Serialkiller) {
+                            if (this.state.selectedPlayer == null) {
+                                return alert("Selecteaza un jucator");
+                            }
+
+                            this.props.parent.state.night.serialkillerSelected = this.state.selectedPlayer;
+                        } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Police) {
+                            if (this.state.selectedPlayer == null) {
+                                return alert("Selecteaza un jucator");
+                            }
+
+                            this.props.parent.state.night.policeSelected = this.state.selectedPlayer;
+                        } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante) {
+                            this.props.parent.state.night.vigilanteSelected = this.state.selectedPlayer;
+                        } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran) {
+
+                        } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
+                            if (this.state.selectedPlayer == null) {
+                                return alert("Selecteaza un jucator");
+                            }
+
+                            this.props.parent.state.night.doctorSelected = this.state.selectedPlayer;
+                        }
+
+                        this.state.selectedPlayer = null;
+
+                        ++this.props.parent.state.nightCurrentOrderIndex;
+
+                        if (this.props.parent.state.nightCurrentOrderIndex >= this.props.parent.state.nightOrder.length) {
+                            this.props.parent.state.isNight = false;
+                        } else {
+                            this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
+                        }
+                        
+                        this.props.parent.setState(this.props.parent.state);
+                    }}
                 >
                     Urmatorul
                 </button>
@@ -409,6 +514,7 @@ class MainPage extends React.Component {
 
         this.state = {
             gameStep: GAME_STEP.WELCOME,
+            gameSettings: Object.assign({}, DEFAULT_GAME_SETTINGS),
 
             players: [],
             nightOrder: DEFAULT_ROUNDS_ORDER.slice(),
@@ -416,7 +522,9 @@ class MainPage extends React.Component {
             dayNumber: 1,
             isNight: false,
 
-            nightCurrentState: null
+            nightCurrentState: null,
+            nightCurrentOrderIndex: 0,
+            night: {}
         };
 
         this.createHash = this.createHash.bind(this);
