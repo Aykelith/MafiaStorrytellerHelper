@@ -131,44 +131,57 @@ button {
 }
 
 .Mafia {
-    background-color: #ffb6b6 !important;
+    border-left: 15px solid #ffb6b6 !important;
 }
 
 .Godfather {
-    background-color: #ff6868 !important;
+    border-left: 15px solid #ff6868 !important;
 }
 
 .Policeman {
-    background-color: #b8ffb6 !important;
+    border-left: 15px solid #b8ffb6 !important;
 }
 
 .Vigilante {
-    background-color: #88ff40 !important;
+    border-left: 15px solid #88ff40 !important;
 }
 
 .Doctor {
-    background-color: #f9ff9e !important;
+    border-left: 15px solid #f9ff9e !important;
 }
 
 .Veteran {
-    background-color: #9ee4ff !important;
+    border-left: 15px solid #9ee4ff !important;
 }
 
 .Serialkiller {
-    background-color: #ffce9e !important;
+    border-left: 15px solid #ffce9e !important;
 }
 
 .Clown {
-    background-color: #f29eff !important;
+    border-left: 15px solid #f29eff !important;
 }
 
 .Mayor {
-    background-color: #d8d8d8 !important;
+    border-left: 15px solid #d8d8d8 !important;
+}
+
+.innocent {
+    background: #fff !important;
+}
+
+.guilty {
+    background-color: #9c1f1f !important;
+    color: #f1f1f1;
 }
 
 .playersStatusCnt {
     background-color: #f0f0f0;
     padding: 10px;
+
+    &:not(:last-child) {
+        margin-bottom: 20px;
+    }
 
     > h3 {
         margin: 0;
@@ -186,14 +199,45 @@ button {
         display: flex;
         justify-content: space-between;
         background-color: #fff;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
 
         &:not(:last-child) {
             margin-bottom: 12px;
         }
     }
 
+    .deleted {
+        position: relative;
+
+        &::after, &::before {
+            position: absolute;
+            left: 221px;
+            content: ' ';
+            height: 500px;
+            width: 5px;
+            background-color: #f00;
+            top: -221px;
+        }
+
+        &::after {
+            transform: rotate(84deg);
+        }
+
+        &::before {
+            transform: rotate(-84deg);
+        }
+    }
+
     .selected {
-        border: 5px solid #f00 !important;
+        border-top: 5px solid #f00 !important;
+        border-bottom: 5px solid #f00 !important;
+        border-right: 5px solid #f00 !important;
     }
 }
 
@@ -215,6 +259,51 @@ button {
     #mafiaStep {
         .playersStatusCnt {
             margin-top: 30px;
+        }
+    }
+
+    #veteranStep {
+        > #buttonsCnt {
+            display: flex;
+
+            > button {
+                flex: 1;
+                color: #006ad5;
+                border: 1px solid #006ad5;
+                background-color: #fff;
+
+                &:first-child {
+                    margin-right: 5px;
+                }
+
+                &:last-child {
+                    margin-left: 5px;
+                }
+            }
+
+            .selected {
+                background-color: #006ad5 !important;
+                color: #fff !important;
+            }
+        }
+
+        .playersStatusCnt {
+            margin-top: 20px;
+        }
+    }
+
+    #buttonsCnt {
+        display: flex;
+        margin-top: 20px;
+
+        #backState {
+            flex: 0.3;
+            margin-right: 10px;
+            background-color: #e90000;
+        }
+
+        #nextState {
+            flex: 0.7;
         }
     }
 }

@@ -1,0 +1,1405 @@
+// modules are defined as an array
+// [ module function, map of requires ]
+//
+// map of requires is short require name -> numeric require
+//
+// anything defined in a previous bundle is accessed via the
+// orig method which is the require for previous bundles
+
+// eslint-disable-next-line no-global-assign
+parcelRequire = (function (modules, cache, entry, globalName) {
+  // Save the require from previous bundle to this closure if any
+  var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
+  var nodeRequire = typeof require === 'function' && require;
+
+  function newRequire(name, jumped) {
+    if (!cache[name]) {
+      if (!modules[name]) {
+        // if we cannot find the module within our internal map or
+        // cache jump to the current global require ie. the last bundle
+        // that was added to the page.
+        var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
+        if (!jumped && currentRequire) {
+          return currentRequire(name, true);
+        }
+
+        // If there are other bundles on this page the require from the
+        // previous one is saved to 'previousRequire'. Repeat this as
+        // many times as there are bundles until the module is found or
+        // we exhaust the require chain.
+        if (previousRequire) {
+          return previousRequire(name, true);
+        }
+
+        // Try the node require function if it exists.
+        if (nodeRequire && typeof name === 'string') {
+          return nodeRequire(name);
+        }
+
+        var err = new Error('Cannot find module \'' + name + '\'');
+        err.code = 'MODULE_NOT_FOUND';
+        throw err;
+      }
+
+      localRequire.resolve = resolve;
+
+      var module = cache[name] = new newRequire.Module(name);
+
+      modules[name][0].call(module.exports, localRequire, module, module.exports, this);
+    }
+
+    return cache[name].exports;
+
+    function localRequire(x){
+      return newRequire(localRequire.resolve(x));
+    }
+
+    function resolve(x){
+      return modules[name][1][x] || x;
+    }
+  }
+
+  function Module(moduleName) {
+    this.id = moduleName;
+    this.bundle = newRequire;
+    this.exports = {};
+  }
+
+  newRequire.isParcelRequire = true;
+  newRequire.Module = Module;
+  newRequire.modules = modules;
+  newRequire.cache = cache;
+  newRequire.parent = previousRequire;
+  newRequire.register = function (id, exports) {
+    modules[id] = [function (require, module) {
+      module.exports = exports;
+    }, {}];
+  };
+
+  for (var i = 0; i < entry.length; i++) {
+    newRequire(entry[i]);
+  }
+
+  if (entry.length) {
+    // Expose entry point to Node, AMD or browser globals
+    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
+    var mainExports = newRequire(entry[entry.length - 1]);
+
+    // CommonJS
+    if (typeof exports === "object" && typeof module !== "undefined") {
+      module.exports = mainExports;
+
+    // RequireJS
+    } else if (typeof define === "function" && define.amd) {
+     define(function () {
+       return mainExports;
+     });
+
+    // <script>
+    } else if (globalName) {
+      this[globalName] = mainExports;
+    }
+  }
+
+  // Override the current require with this new one
+  return newRequire;
+})({"scripts/index.js":[function(require,module,exports) {
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var GAME_STEP = {
+    WELCOME: 0,
+    GAME_SETUP: 2,
+    PLAYERS_SETUP: 3,
+    NIGHT: 4,
+
+    GENERATOR: 99
+};
+
+var PLAYER_ROLES = {
+    Mafia: {
+        text: "Mafiot",
+        id: 0
+    },
+    Godfather: {
+        text: "Capul mafiei",
+        id: 1
+    },
+    Serialkiller: {
+        text: "Serial killer",
+        id: 2
+    },
+    Veteran: {
+        text: "Veteran",
+        id: 3
+    },
+    Vigilante: {
+        text: "Vigilentul",
+        id: 4
+    },
+    Policeman: {
+        text: "Politist",
+        id: 5
+    },
+    Doctor: {
+        text: "Medic",
+        id: 6
+    },
+    Mayor: {
+        text: "Primar",
+        id: 7
+    },
+    Clown: {
+        text: "Mascarici",
+        id: 8
+    }
+};
+
+function roleIsInnocent(role) {
+    return !(role == "Mafia" || role == "Serialkiller");
+}
+
+var NIGHT_ROUND = {
+    Mafia: 0,
+    Serialkiller: 1,
+    Vigilante: 2,
+    Veteran: 3,
+    Police: 4,
+    Doctor: 5,
+    Clown: 6,
+
+    _toText: function _toText(round) {
+        switch (round) {
+            case NIGHT_ROUND.Mafia:
+                return "Mafia";
+            case NIGHT_ROUND.Serialkiller:
+                return "Serialkillerii";
+            case NIGHT_ROUND.Vigilante:
+                return "Vigilentii";
+            case NIGHT_ROUND.Veteran:
+                return "Veteranii";
+            case NIGHT_ROUND.Police:
+                return "Politistii";
+            case NIGHT_ROUND.Doctor:
+                return "Doctorii";
+            case NIGHT_ROUND.Clown:
+                return "Mascaricii";
+        }
+
+        return "Error";
+    },
+
+    _toRoundText: function _toRoundText(round) {
+        switch (round) {
+            case NIGHT_ROUND.Mafia:
+                return "Runda mafiotilor";
+            case NIGHT_ROUND.Serialkiller:
+                return "Runda serialkiller-ilor";
+            case NIGHT_ROUND.Vigilante:
+                return "Runda vigilentilor";
+            case NIGHT_ROUND.Veteran:
+                return "Runda veteranilor";
+            case NIGHT_ROUND.Police:
+                return "Runda politistilor";
+            case NIGHT_ROUND.Doctor:
+                return "Runda doctorilor";
+            case NIGHT_ROUND.Clown:
+                return "Runda mascariciilor";
+        }
+
+        return "Error";
+    },
+
+    _roleIsForThisRound: function _roleIsForThisRound(round, role) {
+        switch (round) {
+            case NIGHT_ROUND.Mafia:
+                return role == "Mafia" || role == "Godfather";
+            case NIGHT_ROUND.Serialkiller:
+                return role == "Serialkiller";
+            case NIGHT_ROUND.Vigilante:
+                return role == "Vigilante";
+            case NIGHT_ROUND.Veteran:
+                return role == "Veteran";
+            case NIGHT_ROUND.Police:
+                return role == "Policeman";
+            case NIGHT_ROUND.Doctor:
+                return role == "Doctor";
+            case NIGHT_ROUND.Clown:
+                return role == "Clown";
+        }
+
+        return false;
+    }
+};
+
+var ROUND_ACTION = {
+    SAVED_BY_DOCTOR: 0,
+    KILLED_IN_NIGHT: 1,
+    LYNCHED: 2,
+    SELF_DEFENCE: 3,
+    GUILTY: 4,
+    INNOCENT: 5
+};
+
+var DEFAULT_ROUNDS_ORDER = [NIGHT_ROUND.Mafia, NIGHT_ROUND.Serialkiller, NIGHT_ROUND.Police, NIGHT_ROUND.Vigilante, NIGHT_ROUND.Doctor, NIGHT_ROUND.Veteran];
+
+var DEFAULT_PLAYER = {
+    name: "",
+    role: -1,
+    alive: true
+};
+
+var DEFAULT_GAME_SETTINGS = {};
+
+function createHashFromPlayers(players) {
+    var hash = "";
+    for (var i = 0, length = players.length; i < length; ++i) {
+        hash += players[i].name + "|" + PLAYER_ROLES[players[i].role].id + "|" + (players[i].alive ? "1" : "0") + "&";
+    }
+
+    return hash;
+}
+
+var WelcomePage = function (_React$Component) {
+    _inherits(WelcomePage, _React$Component);
+
+    function WelcomePage() {
+        _classCallCheck(this, WelcomePage);
+
+        return _possibleConstructorReturn(this, (WelcomePage.__proto__ || Object.getPrototypeOf(WelcomePage)).apply(this, arguments));
+    }
+
+    _createClass(WelcomePage, [{
+        key: "render",
+        value: function render() {
+            var _this2 = this;
+
+            return React.createElement(
+                "div",
+                { id: "welcomePage", className: "main" },
+                React.createElement(
+                    "h1",
+                    null,
+                    "Mafia Storyteller Helper"
+                ),
+                React.createElement(
+                    "h2",
+                    null,
+                    "Created by Aykelith@NiAl"
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        id: "startBtn",
+                        onClick: function onClick() {
+                            _this2.props.parent.state.gameStep = GAME_STEP.GAME_SETUP;
+                            _this2.props.parent.setState(_this2.props.parent.state);
+                        }
+                    },
+                    "Start"
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        id: "generatorBtn",
+                        onClick: function onClick() {}
+                    },
+                    "Generator"
+                )
+            );
+        }
+    }]);
+
+    return WelcomePage;
+}(React.Component);
+
+;
+
+var GameSetupPage = function (_React$Component2) {
+    _inherits(GameSetupPage, _React$Component2);
+
+    function GameSetupPage() {
+        _classCallCheck(this, GameSetupPage);
+
+        return _possibleConstructorReturn(this, (GameSetupPage.__proto__ || Object.getPrototypeOf(GameSetupPage)).apply(this, arguments));
+    }
+
+    _createClass(GameSetupPage, [{
+        key: "render",
+        value: function render() {
+            var _this4 = this;
+
+            return React.createElement(
+                "div",
+                { id: "gameSetupPage", className: "main" },
+                React.createElement(
+                    "h2",
+                    null,
+                    "Game Setup"
+                ),
+                React.createElement(
+                    "div",
+                    { className: "block" },
+                    React.createElement(
+                        "div",
+                        null,
+                        "Ordinea noptilor:"
+                    ),
+                    React.createElement(
+                        "div",
+                        { id: "nightsOrderCnt" },
+                        this.props.parent.state.nightOrder.map(function (round) {
+                            return React.createElement(
+                                "div",
+                                { key: "round" + round },
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    NIGHT_ROUND._toText(round)
+                                ),
+                                React.createElement("div", null)
+                            );
+                        })
+                    )
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        onClick: function onClick() {
+                            _this4.props.parent.state.gameStep = GAME_STEP.PLAYERS_SETUP;
+                            _this4.props.parent.setState(_this4.props.parent.state);
+                        }
+                    },
+                    "Urmatorul"
+                )
+            );
+        }
+    }]);
+
+    return GameSetupPage;
+}(React.Component);
+
+var PlayersSetupPage = function (_React$Component3) {
+    _inherits(PlayersSetupPage, _React$Component3);
+
+    function PlayersSetupPage(props) {
+        _classCallCheck(this, PlayersSetupPage);
+
+        var _this5 = _possibleConstructorReturn(this, (PlayersSetupPage.__proto__ || Object.getPrototypeOf(PlayersSetupPage)).call(this, props));
+
+        _this5.props.parent.state.players = [{ name: "Mafia 1", role: "Mafia", alive: true }, { name: "Mafia 2", role: "Mafia", alive: true }, { name: "Godfather", role: "Godfather", alive: true }, { name: "Policeman", role: "Policeman", alive: true }, { name: "Policeman 2", role: "Policeman", alive: true }, { name: "Veteran", role: "Veteran", alive: true }, { name: "Vigilante", role: "Vigilante", alive: true }, { name: "Doctor", role: "Doctor", alive: true }, { name: "Mayor", role: "Mayor", alive: true }, { name: "Clown", role: "Clown", alive: true }, { name: "Serialkiller", role: "Serialkiller", alive: true }];
+        return _this5;
+    }
+
+    _createClass(PlayersSetupPage, [{
+        key: "render",
+        value: function render() {
+            var _this6 = this;
+
+            return React.createElement(
+                "div",
+                { id: "playersSetupPage", className: "main" },
+                React.createElement(
+                    "h2",
+                    null,
+                    "Players setup"
+                ),
+                React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "span",
+                        null,
+                        "Numarul de jucatori: "
+                    ),
+                    React.createElement("input", {
+                        type: "number",
+                        value: this.props.parent.state.players.length,
+                        onChange: function onChange(e) {
+                            _this6.props.parent.state.players.length = parseInt(e.target.value);
+
+                            for (var i = 0, length = _this6.props.parent.state.players.length; i < length; ++i) {
+                                if (!_this6.props.parent.state.players[i]) {
+                                    _this6.props.parent.state.players[i] = Object.assign({}, DEFAULT_PLAYER);
+                                }
+                            }
+
+                            _this6.props.parent.setState(_this6.props.parent.state);
+                        }
+                    })
+                ),
+                React.createElement(
+                    "table",
+                    null,
+                    React.createElement(
+                        "thead",
+                        null,
+                        React.createElement(
+                            "tr",
+                            null,
+                            React.createElement(
+                                "th",
+                                null,
+                                "Nr"
+                            ),
+                            React.createElement(
+                                "th",
+                                null,
+                                "Nume"
+                            ),
+                            React.createElement(
+                                "th",
+                                null,
+                                "Rol"
+                            ),
+                            React.createElement("th", null)
+                        )
+                    ),
+                    React.createElement(
+                        "tbody",
+                        null,
+                        this.props.parent.state.players.map(function (player, index) {
+                            return React.createElement(
+                                "tr",
+                                { key: "player" + index },
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    index
+                                ),
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    React.createElement("input", {
+                                        type: "text",
+                                        value: player.name,
+                                        onChange: function onChange(e) {
+                                            _this6.props.parent.state.players[index].name = e.target.value;
+                                            _this6.props.parent.setState(_this6.props.parent.state);
+                                        }
+                                    })
+                                ),
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    React.createElement(
+                                        "select",
+                                        {
+                                            value: player.role,
+                                            onChange: function onChange(e) {
+                                                _this6.props.parent.state.players[index].role = e.target.value;
+                                                _this6.props.parent.setState(_this6.props.parent.state);
+                                            }
+                                        },
+                                        React.createElement(
+                                            "option",
+                                            { value: -1 },
+                                            "Niciun rol"
+                                        ),
+                                        Object.keys(PLAYER_ROLES).map(function (role) {
+                                            return React.createElement(
+                                                "option",
+                                                { key: role, value: role },
+                                                PLAYER_ROLES[role].text
+                                            );
+                                        })
+                                    )
+                                ),
+                                React.createElement("td", null)
+                            );
+                        })
+                    )
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        onClick: function onClick() {
+                            _this6.props.parent.state.gameStep = GAME_STEP.NIGHT;
+                            _this6.props.parent.setState(_this6.props.parent.state);
+                        }
+                    },
+                    "Incepe jocul"
+                )
+            );
+        }
+    }]);
+
+    return PlayersSetupPage;
+}(React.Component);
+
+var NightPage = function (_React$Component4) {
+    _inherits(NightPage, _React$Component4);
+
+    function NightPage(props) {
+        _classCallCheck(this, NightPage);
+
+        var _this7 = _possibleConstructorReturn(this, (NightPage.__proto__ || Object.getPrototypeOf(NightPage)).call(this, props));
+
+        _this7.state = {};
+
+        _this7.calculateNight = _this7.calculateNight.bind(_this7);
+
+        _this7.renderPlayer = _this7.renderPlayer.bind(_this7);
+
+        _this7.renderDay = _this7.renderDay.bind(_this7);
+        _this7.renderNight = _this7.renderNight.bind(_this7);
+
+        _this7.renderSelectable = _this7.renderSelectable.bind(_this7);
+        _this7.renderVeteran = _this7.renderVeteran.bind(_this7);
+
+        _this7.wasProtectedByDoctor = _this7.wasProtectedByDoctor.bind(_this7);
+        _this7.wasSelfDefence = _this7.wasSelfDefence.bind(_this7);
+        _this7.isGuilty = _this7.isGuilty.bind(_this7);
+        _this7.getRoleIndex = _this7.getRoleIndex.bind(_this7);
+        _this7.getRoleAlive = _this7.getRoleAlive.bind(_this7);
+
+        _this7.getResultMessage = _this7.getResultMessage.bind(_this7);
+        return _this7;
+    }
+
+    _createClass(NightPage, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.props.parent.createHash();
+        }
+    }, {
+        key: "wasProtectedByDoctor",
+        value: function wasProtectedByDoctor(index) {
+            return this.props.parent.state.night.doctorSelected == index;
+        }
+    }, {
+        key: "wasSelfDefence",
+        value: function wasSelfDefence(index) {
+            return this.props.parent.state.night.veteranSelected == index;
+        }
+    }, {
+        key: "isGuilty",
+        value: function isGuilty(index) {
+            return ['Mafia', 'Serialkiller'].includes(this.props.parent.state.players[index].role);
+        }
+    }, {
+        key: "getRoleIndex",
+        value: function getRoleIndex(role) {
+            for (var i = 0, length = this.props.parent.state.players.length; i < length; ++i) {
+                if (this.props.parent.state.players[i].role == role) return i;
+            }
+
+            return null;
+        }
+    }, {
+        key: "getRoleAlive",
+        value: function getRoleAlive(role) {
+            return this.props.parent.state.players.filter(function (player) {
+                return NIGHT_ROUND._roleIsForThisRound(role, player.role) && player.alive;
+            });
+        }
+    }, {
+        key: "calculateNight",
+        value: function calculateNight() {
+            var night = this.props.parent.state.night;
+            night.otherDeaths = [];
+
+            var veteranUsedTheBullet = false;
+
+            if (night.mafiaSelected) {
+                console.log("MAFIA", night.mafiaSelected, this.props.parent.state.players[night.mafiaSelected]);
+                if (this.wasSelfDefence(night.mafiaSelected)) {
+                    console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
+                    if (!veteranUsedTheBullet) {
+                        --this.props.parent.state.players[night.mafiaSelected].bullets;
+                        veteranUsedTheBullet = true;
+                    }
+
+                    var id = this.getRoleIndex('Godfather');
+                    this.props.parent.state.players[id].alive = false;
+                    night.mafiaSelected = { id: id, action: ROUND_ACTION.SELF_DEFENCE };
+                } else if (this.wasProtectedByDoctor(night.mafiaSelected)) {
+                    console.log("   ", "WAS PROTECTED BY DOCTOR");
+                    night.mafiaSelected = { id: night.mafiaSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                } else {
+                    this.props.parent.state.players[night.mafiaSelected].alive = false;
+                    night.mafiaSelected = { id: night.mafiaSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                }
+            }
+
+            if (night.serialkillerSelected) {
+                console.log("SERIALKILLER", night.serialkillerSelected, this.props.parent.state.players[night.serialkillerSelected]);
+                if (this.wasSelfDefence(night.serialkillerSelected)) {
+                    console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
+                    if (!veteranUsedTheBullet) {
+                        --this.props.parent.state.players[night.serialkillerSelected].bullets;
+                        veteranUsedTheBullet = true;
+                    }
+
+                    var _id = this.getRoleIndex('Serialkiller');
+                    this.props.parent.state.players[_id].alive = false;
+                    night.serialkillerSelected = { id: _id, action: ROUND_ACTION.SELF_DEFENCE };
+                } else if (this.wasProtectedByDoctor(night.serialkillerSelected)) {
+                    console.log("   ", "WAS PROTECTED BY DOCTOR");
+                    night.serialkillerSelected = { id: night.serialkillerSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                } else {
+                    this.props.parent.state.players[night.serialkillerSelected].alive = false;
+                    night.serialkillerSelected = { id: night.serialkillerSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                }
+            }
+
+            if (night.vigilanteSelected) {
+                console.log("VIGILANTE", night.vigilanteSelected, this.props.parent.state.players[night.vigilanteSelected]);
+                if (this.wasSelfDefence(night.vigilanteSelected)) {
+                    console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
+                    if (!veteranUsedTheBullet) {
+                        --this.props.parent.state.players[night.vigilanteSelected].bullets;
+                        veteranUsedTheBullet = true;
+                    }
+
+                    var _id2 = this.getRoleIndex('Vigilante');
+                    this.props.parent.state.players[_id2].alive = false;
+                    night.vigilanteSelected = { id: _id2, action: ROUND_ACTION.SELF_DEFENCE };
+                } else if (this.wasProtectedByDoctor(night.vigilanteSelected)) {
+                    console.log("   ", "WAS PROTECTED BY DOCTOR");
+                    night.vigilanteSelected = { id: night.vigilanteSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                } else {
+                    this.props.parent.state.players[night.vigilanteSelected].alive = false;
+                    night.vigilanteSelected = { id: night.vigilanteSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                }
+            }
+
+            if (night.policeSelected) {
+                console.log("POLICE", night.policeSelected, this.props.parent.state.players[night.policeSelected]);
+                if (this.wasSelfDefence(night.policeSelected)) {
+                    console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet, night.policeVeteranSelected, this.props.parent.state.players[night.policeVeteranSelected]);
+                    if (!veteranUsedTheBullet) {
+                        --this.props.parent.state.players[night.policeSelected].bullets;
+                        veteranUsedTheBullet = true;
+                    }
+
+                    this.props.parent.state.players[night.policeVeteranSelected].alive = false;
+                    night.otherDeaths.push({ id: night.policeVeteranSelected, action: ROUND_ACTION.SELF_DEFENCE });
+                }
+
+                night.policeSelected = { id: night.policeSelected, action: this.isGuilty(night.policeSelected) ? ROUND_ACTION.GUILTY : ROUND_ACTION.INNOCENT };
+            }
+
+            if (night.doctorSelected) {
+                console.log("DOCTOR", night.doctorSelected, this.props.parent.state.players[night.doctorSelected]);
+                if (this.wasSelfDefence(night.doctorSelected)) {
+                    console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet, night.doctorVeteranSelected, this.props.parent.state.players[night.doctorVeteranSelected]);
+                    if (!veteranUsedTheBullet) {
+                        --this.props.parent.state.players[night.doctorSelected].bullets;
+                        veteranUsedTheBullet = true;
+                    }
+
+                    this.props.parent.state.players[night.doctorVeteranSelected].alive = false;
+                    night.otherDeaths.push({ id: night.doctorVeteranSelected, action: ROUND_ACTION.SELF_DEFENCE });
+                }
+
+                night.doctorSelected = { id: night.doctorSelected, action: this.isGuilty(night.doctorSelected) ? ROUND_ACTION.GUILTY : ROUND_ACTION.INNOCENT };
+            }
+        }
+    }, {
+        key: "renderPlayer",
+        value: function renderPlayer(player, settings) {
+            return React.createElement(
+                "div",
+                { onClick: settings.onClick, className: player.role + " " + (settings.className || "") },
+                React.createElement(
+                    "div",
+                    null,
+                    player.name
+                ),
+                React.createElement(
+                    "div",
+                    null,
+                    settings.role ? settings.role(player) : PLAYER_ROLES[player.role].text
+                )
+            );
+        }
+    }, {
+        key: "getResultMessage",
+        value: function getResultMessage(round, result) {
+            if (round == NIGHT_ROUND.Mafia) {
+                if (result.action == ROUND_ACTION.KILLED_IN_NIGHT) {
+                    return React.createElement(
+                        "span",
+                        null,
+                        "Mafiotii au omorat pe ",
+                        React.createElement(
+                            "b",
+                            null,
+                            this.props.parent.state.players[this.props.parent.state.night.mafiaSelected.id].name
+                        )
+                    );
+                } else if (result.action == ROUND_ACTION.SELF_DEFENCE) {
+                    return React.createElement(
+                        "span",
+                        null,
+                        "Mafiotii fraierii"
+                    );
+                }
+            }
+        }
+    }, {
+        key: "renderDay",
+        value: function renderDay() {
+            var _this8 = this;
+
+            console.log("RRR", this.props.parent.state.night);
+
+            return React.createElement(
+                "div",
+                { id: "nightPage_day", className: "main" },
+                React.createElement(
+                    "h2",
+                    { id: "dayNumber" },
+                    "Ziua ",
+                    this.props.parent.state.dayNumber
+                ),
+                this.props.parent.state.night && React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        "Noaptea trecuta"
+                    ),
+                    this.props.parent.state.night.mafiaSelected && React.createElement(
+                        "div",
+                        { className: "Mafia" },
+                        this.getResultMessage(NIGHT_ROUND.Mafia, this.props.parent.state.night.mafiaSelected)
+                    ),
+                    this.props.parent.state.night.serialkillerSelected && React.createElement(
+                        "div",
+                        { className: "Serialkiller" },
+                        "Serialkiller-ii au selectat pe ",
+                        this.props.parent.state.night.serialkillerSelected.id,
+                        " si ",
+                        this.props.parent.state.night.serialkillerSelected.action
+                    )
+                ),
+                React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        "Lista jucatori"
+                    ),
+                    React.createElement(
+                        "h4",
+                        null,
+                        "(selecteaza un jucator pentru a-l linsa)"
+                    ),
+                    this.props.parent.state.players.map(function (player, index) {
+                        return _this8.renderPlayer(player, {
+                            className: (_this8.state.selectedPlayer == index ? "selected" : "") + " " + (!player.alive ? "deleted" : ""),
+                            onClick: function onClick() {
+                                console.log(player.alive);
+                                if (!player.alive) return;
+
+                                _this8.state.selectedPlayer = _this8.state.selectedPlayer == index ? null : index;
+                                _this8.setState(_this8.state);
+                            }
+                        });
+                    })
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        id: "startNightBtn",
+                        onClick: function onClick(e) {
+                            _this8.state.selectedPlayer = null;
+                            _this8.state.auxSelected = null;
+                            _this8.state.auxActivated = false;
+                            _this8.state.veteranButton = null;
+
+                            _this8.props.parent.state.isNight = true;
+                            ++_this8.props.parent.state.dayNumber;
+                            _this8.props.parent.state.nightCurrentState = _this8.props.parent.state.nightOrder[0];
+                            _this8.props.parent.state.nightCurrentOrderIndex = 0;
+                            _this8.props.parent.state.night = {};
+                            _this8.props.parent.setState(_this8.props.parent.state);
+                        }
+                    },
+                    "Incepe noaptea"
+                )
+            );
+        }
+    }, {
+        key: "renderSelectable",
+        value: function renderSelectable(settings) {
+            var _this9 = this;
+
+            console.log(settings);
+            return React.createElement(
+                "div",
+                { id: "mafiaStep", className: "nightStep" },
+                React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        settings.title
+                    ),
+                    React.createElement(
+                        "h4",
+                        null,
+                        settings.subtitle
+                    ),
+                    this.props.parent.state.players.filter(function (player) {
+                        return !NIGHT_ROUND._roleIsForThisRound(_this9.props.parent.state.nightCurrentState, player.role) && player.alive;
+                    }).sort(settings.filter ? settings.filter : function (player1, player2) {
+                        return player1.role > player2.role;
+                    }).map(function (player, index) {
+                        return _this9.renderPlayer(player, Object.assign({
+                            className: settings.className ? (_this9.state.selectedPlayer == index ? "selected" : "") + " " + settings.className(player, index) : _this9.state.selectedPlayer == index && "selected",
+                            onClick: function onClick() {
+                                _this9.state.selectedPlayer = _this9.state.selectedPlayer == index ? null : index;
+                                _this9.setState(_this9.state);
+                            }
+                        }, settings.player || {}));
+                    })
+                )
+            );
+        }
+    }, {
+        key: "renderVeteran",
+        value: function renderVeteran() {
+            var _this10 = this;
+
+            return React.createElement(
+                "div",
+                { id: "veteranStep", className: "nightStep" },
+                React.createElement(
+                    "h3",
+                    null,
+                    "Vrei sa folosesti glontul?"
+                ),
+                React.createElement(
+                    "div",
+                    { id: "buttonsCnt" },
+                    React.createElement(
+                        "button",
+                        {
+                            className: this.state.veteranButton == 1 && 'selected',
+                            onClick: function onClick() {
+                                _this10.props.parent.state.night.veteranSelected = _this10.getRoleIndex('Veteran');
+                                _this10.state.veteranButton = 1;
+                                _this10.setState(_this10.state);
+                            }
+                        },
+                        "Da"
+                    ),
+                    React.createElement(
+                        "button",
+                        {
+                            className: this.state.veteranButton == 2 && 'selected',
+                            onClick: function onClick() {
+                                _this10.props.parent.state.night.veteranSelected = null;
+                                _this10.state.veteranButton = 2;
+                                _this10.setState(_this10.state);
+                            }
+                        },
+                        "Nu"
+                    )
+                ),
+                this.props.parent.state.night.veteranSelected && this.props.parent.state.night.policeSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Police).length > 1 && React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        "Lista politisti"
+                    ),
+                    React.createElement(
+                        "h4",
+                        null,
+                        "(selecteaza un politist pentru a-l omori)"
+                    ),
+                    this.getRoleAlive(NIGHT_ROUND.Police).map(function (player, index) {
+                        return _this10.renderPlayer(player, {
+                            className: _this10.props.parent.state.night.policeVeteranSelected == index && "selected",
+                            onClick: function onClick() {
+                                _this10.props.parent.state.night.policeVeteranSelected = _this10.props.parent.state.night.policeVeteranSelected == index ? null : index;
+                                _this10.props.parent.setState(_this10.props.parent.state);
+                            }
+                        });
+                    })
+                ),
+                this.props.parent.state.night.veteranSelected && this.props.parent.state.night.doctorSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Doctor).length > 1 && React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        "Lista doctori"
+                    ),
+                    React.createElement(
+                        "h4",
+                        null,
+                        "(selecteaza un doctor pentru a-l omori)"
+                    ),
+                    this.getRoleAlive(NIGHT_ROUND.Doctor).map(function (player, index) {
+                        return _this10.renderPlayer(player, _this10.props.parent.state.night.doctorVeteranSelected == index && "selected", function () {
+                            _this10.props.parent.state.night.doctorVeteranSelected = _this10.props.parent.state.night.doctorVeteranSelected == index ? null : index;
+                            _this10.props.parent.setState(_this10.props.parent.state);
+                        });
+                    })
+                )
+            );
+        }
+    }, {
+        key: "renderNight",
+        value: function renderNight() {
+            var _this11 = this;
+
+            var currentRoundPlayers = this.props.parent.state.players.filter(function (player) {
+                return NIGHT_ROUND._roleIsForThisRound(_this11.props.parent.state.nightCurrentState, player.role) && player.alive;
+            }).sort(function (player1, player2) {
+                return player1.role > player2.role;
+            });
+
+            return React.createElement(
+                "div",
+                { id: "nightPage_night", className: "main" },
+                React.createElement(
+                    "h1",
+                    null,
+                    NIGHT_ROUND._toRoundText(this.props.parent.state.nightCurrentState)
+                ),
+                React.createElement(
+                    "div",
+                    { className: "playersStatusCnt" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        "Lista jucatori"
+                    ),
+                    currentRoundPlayers.map(function (player, index) {
+                        return _this11.renderPlayer(player, {
+                            className: _this11.state.auxActivated && _this11.state.auxSelected == index && "selected",
+                            onClick: function onClick() {
+                                _this11.state.auxSelected = _this11.state.auxSelected == index ? null : index;
+                                _this11.setState(_this11.state);
+                            }
+                        });
+                    })
+                ),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", required: true }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Serialkiller && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)" }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Police && this.renderSelectable({
+                    title: "Posibili criminali",
+                    subtitle: "(selecteaza un jucator)",
+                    filter: function filter(player1, player2) {
+                        return roleIsInnocent(player1.role) > roleIsInnocent(player2.role);
+                    },
+                    className: function className(player, index) {
+                        return roleIsInnocent(player.role) ? "innocent" : "guilty";
+                    },
+                    player: {
+                        role: function role(player) {
+                            return roleIsInnocent(player.role) ? "Inocent" : "Vinovant";
+                        }
+                    }
+                }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)" }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)" }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran && this.renderVeteran(),
+                React.createElement(
+                    "div",
+                    { id: "buttonsCnt" },
+                    React.createElement(
+                        "button",
+                        {
+                            id: "backState",
+                            onClick: function onClick() {}
+                        },
+                        "Inapoi"
+                    ),
+                    React.createElement(
+                        "button",
+                        {
+                            id: "nextState",
+                            onClick: function onClick() {
+                                if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia) {
+                                    if (currentRoundPlayers.length > 0 && _this11.state.selectedPlayer == null) {
+                                        return alert("Selecteaza un jucator");
+                                    }
+
+                                    _this11.props.parent.state.night.mafiaSelected = _this11.state.selectedPlayer;
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Serialkiller) {
+                                    if (currentRoundPlayers.length > 0 && _this11.state.selectedPlayer == null) {
+                                        return alert("Selecteaza un jucator");
+                                    }
+
+                                    _this11.props.parent.state.night.serialkillerSelected = _this11.state.selectedPlayer;
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Police) {
+                                    if (currentRoundPlayers.length > 0 && _this11.state.selectedPlayer == null) {
+                                        return alert("Selecteaza un jucator");
+                                    }
+
+                                    _this11.props.parent.state.night.policeSelected = _this11.state.selectedPlayer;
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante) {
+                                    _this11.props.parent.state.night.vigilanteSelected = _this11.state.selectedPlayer;
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran) {
+                                    if (_this11.props.parent.state.night.veteranSelected === undefined) {
+                                        return alert("Selecteaza DA sau NU");
+                                    }
+
+                                    if (_this11.props.parent.state.night.veteranSelected) {
+                                        if (_this11.props.parent.state.night.policeSelected == _this11.props.parent.state.night.veteranSelected && _this11.getRoleAlive(NIGHT_ROUND.Police).length > 1 && !_this11.props.parent.state.night.policeVeteranSelected) {
+                                            return alert("Selecteaza un politis");
+                                        }
+
+                                        if (_this11.props.parent.state.night.doctorSelected == _this11.props.parent.state.night.veteranSelected && _this11.getRoleAlive(NIGHT_ROUND.Doctor).length > 1 && !_this11.props.parent.state.night.doctorVeteranSelected) {
+                                            return alert("Selecteaza un doctor");
+                                        }
+                                    }
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
+                                    if (currentRoundPlayers.length > 0 && _this11.state.selectedPlayer == null) {
+                                        return alert("Selecteaza un jucator");
+                                    }
+
+                                    _this11.props.parent.state.night.doctorSelected = _this11.state.selectedPlayer;
+                                }
+
+                                _this11.state.selectedPlayer = null;
+                                _this11.state.auxSelected = null;
+                                _this11.state.auxActivated = false;
+
+                                ++_this11.props.parent.state.nightCurrentOrderIndex;
+
+                                if (_this11.props.parent.state.nightCurrentOrderIndex >= _this11.props.parent.state.nightOrder.length) {
+                                    _this11.calculateNight();
+                                    _this11.props.parent.state.isNight = false;
+                                } else {
+                                    _this11.props.parent.state.nightCurrentState = _this11.props.parent.state.nightOrder[_this11.props.parent.state.nightCurrentOrderIndex];
+                                }
+
+                                _this11.props.parent.setState(_this11.props.parent.state);
+                            }
+                        },
+                        "Urmatorul"
+                    )
+                )
+            );
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return this.props.parent.state.isNight ? this.renderNight() : this.renderDay();
+        }
+    }]);
+
+    return NightPage;
+}(React.Component);
+
+var GeneratorPage = function (_React$Component5) {
+    _inherits(GeneratorPage, _React$Component5);
+
+    function GeneratorPage(props) {
+        _classCallCheck(this, GeneratorPage);
+
+        return _possibleConstructorReturn(this, (GeneratorPage.__proto__ || Object.getPrototypeOf(GeneratorPage)).call(this, props));
+    }
+
+    _createClass(GeneratorPage, [{
+        key: "render",
+        value: function render() {
+            React.createElement(
+                "div",
+                { id: "generatorPage", className: "main" },
+                React.createElement(
+                    "h2",
+                    null,
+                    "Generator"
+                ),
+                React.createElement(
+                    "div",
+                    { id: "presetCnt" },
+                    React.createElement(
+                        "div",
+                        { id: "presetSelectCnt" },
+                        React.createElement(
+                            "span",
+                            null,
+                            "Preset:"
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return GeneratorPage;
+}(React.Component);
+
+;
+
+var MainPage = function (_React$Component6) {
+    _inherits(MainPage, _React$Component6);
+
+    function MainPage(props) {
+        _classCallCheck(this, MainPage);
+
+        var _this13 = _possibleConstructorReturn(this, (MainPage.__proto__ || Object.getPrototypeOf(MainPage)).call(this, props));
+
+        _this13.state = {
+            gameStep: GAME_STEP.WELCOME,
+            gameSettings: Object.assign({}, DEFAULT_GAME_SETTINGS),
+
+            players: [],
+            nightOrder: DEFAULT_ROUNDS_ORDER.slice(),
+
+            dayNumber: 1,
+            isNight: false,
+
+            nightCurrentState: null,
+            nightCurrentOrderIndex: 0,
+            night: null,
+            nights: []
+        };
+
+        _this13.createHash = _this13.createHash.bind(_this13);
+        return _this13;
+    }
+
+    _createClass(MainPage, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this14 = this;
+
+            var decodedURI = decodeURIComponent(window.location.hash);
+            var token1 = decodedURI.indexOf("&&");
+
+            if (token1 == -1) return;
+
+            var playersString = decodedURI.substring(1, token1);
+            console.log("playersString", playersString);
+
+            var players = playersString.split("&");
+
+            var _loop = function _loop(i, length) {
+                var chars = players[i].split("|");
+
+                console.log(players[i], chars);
+
+                _this14.state.players.push({
+                    name: chars[0],
+                    role: Object.keys(PLAYER_ROLES).filter(function (role) {
+                        return PLAYER_ROLES[role].id == chars[1];
+                    })[0],
+                    alive: chars[2] == "1" ? true : false
+                });
+            };
+
+            for (var i = 0, length = players.length; i < length; ++i) {
+                _loop(i, length);
+            }
+
+            console.log(this.state.players);
+
+            var token2 = decodedURI.indexOf("&&", token1 + 1);
+            this.state.day = parseInt(decodedURI.substring(token1 + 2, token2));
+
+            this.state.gameStep = GAME_STEP.NIGHT;
+            this.setState(this.state);
+        }
+    }, {
+        key: "createHash",
+        value: function createHash() {
+            window.location.hash = createHashFromPlayers(this.state.players) + "&" + this.state.dayNumber + "&&";
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var displayBlock = null;
+            if (this.state.gameStep == GAME_STEP.WELCOME) displayBlock = React.createElement(WelcomePage, { parent: this });else if (this.state.gameStep == GAME_STEP.GAME_SETUP) displayBlock = React.createElement(GameSetupPage, { parent: this });else if (this.state.gameStep == GAME_STEP.PLAYERS_SETUP) displayBlock = React.createElement(PlayersSetupPage, { parent: this });else if (this.state.gameStep == GAME_STEP.NIGHT) displayBlock = React.createElement(NightPage, { parent: this });else if (this.state.gameStep == GAME_STEP.GENERATOR) displayBlock = React.createElement(GeneratorPage, { parent: this });
+
+            return displayBlock;
+        }
+    }]);
+
+    return MainPage;
+}(React.Component);
+
+;
+
+ReactDOM.render(React.createElement(MainPage, null), document.getElementById('root'));
+},{}],"../../../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var global = arguments[3];
+var OVERLAY_ID = '__parcel__error__overlay__';
+
+var OldModule = module.bundle.Module;
+
+function Module(moduleName) {
+  OldModule.call(this, moduleName);
+  this.hot = {
+    data: module.bundle.hotData,
+    _acceptCallbacks: [],
+    _disposeCallbacks: [],
+    accept: function (fn) {
+      this._acceptCallbacks.push(fn || function () {});
+    },
+    dispose: function (fn) {
+      this._disposeCallbacks.push(fn);
+    }
+  };
+
+  module.bundle.hotData = null;
+}
+
+module.bundle.Module = Module;
+
+var parent = module.bundle.parent;
+if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
+  var hostname = '' || location.hostname;
+  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '44895' + '/');
+  ws.onmessage = function (event) {
+    var data = JSON.parse(event.data);
+
+    if (data.type === 'update') {
+      console.clear();
+
+      data.assets.forEach(function (asset) {
+        hmrApply(global.parcelRequire, asset);
+      });
+
+      data.assets.forEach(function (asset) {
+        if (!asset.isNew) {
+          hmrAccept(global.parcelRequire, asset.id);
+        }
+      });
+    }
+
+    if (data.type === 'reload') {
+      ws.close();
+      ws.onclose = function () {
+        location.reload();
+      };
+    }
+
+    if (data.type === 'error-resolved') {
+      console.log('[parcel] ✨ Error resolved');
+
+      removeErrorOverlay();
+    }
+
+    if (data.type === 'error') {
+      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
+
+      removeErrorOverlay();
+
+      var overlay = createErrorOverlay(data);
+      document.body.appendChild(overlay);
+    }
+  };
+}
+
+function removeErrorOverlay() {
+  var overlay = document.getElementById(OVERLAY_ID);
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+function createErrorOverlay(data) {
+  var overlay = document.createElement('div');
+  overlay.id = OVERLAY_ID;
+
+  // html encode message and stack trace
+  var message = document.createElement('div');
+  var stackTrace = document.createElement('pre');
+  message.innerText = data.error.message;
+  stackTrace.innerText = data.error.stack;
+
+  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
+
+  return overlay;
+}
+
+function getParents(bundle, id) {
+  var modules = bundle.modules;
+  if (!modules) {
+    return [];
+  }
+
+  var parents = [];
+  var k, d, dep;
+
+  for (k in modules) {
+    for (d in modules[k][1]) {
+      dep = modules[k][1][d];
+      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
+        parents.push(k);
+      }
+    }
+  }
+
+  if (bundle.parent) {
+    parents = parents.concat(getParents(bundle.parent, id));
+  }
+
+  return parents;
+}
+
+function hmrApply(bundle, asset) {
+  var modules = bundle.modules;
+  if (!modules) {
+    return;
+  }
+
+  if (modules[asset.id] || !bundle.parent) {
+    var fn = new Function('require', 'module', 'exports', asset.generated.js);
+    asset.isNew = !modules[asset.id];
+    modules[asset.id] = [fn, asset.deps];
+  } else if (bundle.parent) {
+    hmrApply(bundle.parent, asset);
+  }
+}
+
+function hmrAccept(bundle, id) {
+  var modules = bundle.modules;
+  if (!modules) {
+    return;
+  }
+
+  if (!modules[id] && bundle.parent) {
+    return hmrAccept(bundle.parent, id);
+  }
+
+  var cached = bundle.cache[id];
+  bundle.hotData = {};
+  if (cached) {
+    cached.hot.data = bundle.hotData;
+  }
+
+  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
+    cached.hot._disposeCallbacks.forEach(function (cb) {
+      cb(bundle.hotData);
+    });
+  }
+
+  delete bundle.cache[id];
+  bundle(id);
+
+  cached = bundle.cache[id];
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    cached.hot._acceptCallbacks.forEach(function (cb) {
+      cb();
+    });
+    return true;
+  }
+
+  return getParents(global.parcelRequire, id).some(function (id) {
+    return hmrAccept(global.parcelRequire, id);
+  });
+}
+},{}]},{},["../../../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","scripts/index.js"], null)
+//# sourceMappingURL=/scripts.319dda8e.map

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm-run-all --parallel watch:less",
+    "start": "npm-run-all --parallel watch:less watch:browser",
+    "watch:browser": "parcel index.debug.html",
     "watch:less": "less-watch-compiler"
   },
   "author": "AlexxanderX",
