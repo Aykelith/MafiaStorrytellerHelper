@@ -1,3 +1,5 @@
+@import "variables";
+
 html, body {
     padding: 0;
     margin: 0;
@@ -38,6 +40,11 @@ button {
 
     display: flex;
     flex-direction: column;
+}
+
+.cnt() {
+    background-color: #f0f0f0;
+    padding: 10px;
 }
 
 #welcomePage {
@@ -175,9 +182,14 @@ button {
     color: #f1f1f1;
 }
 
+.specialCnt {
+    .cnt();
+    margin-bottom: 10px;
+    text-align: center;
+}
+
 .playersStatusCnt {
-    background-color: #f0f0f0;
-    padding: 10px;
+    .cnt();
 
     &:not(:last-child) {
         margin-bottom: 20px;
@@ -217,20 +229,21 @@ button {
 
         &::after, &::before {
             position: absolute;
-            left: 221px;
             content: ' ';
-            height: 500px;
-            width: 5px;
+            width: 100%;
+            max-width: 500px;
+            height: 5px;
             background-color: #f00;
-            top: -221px;
+            top: 26px;
+            left: 0px;
         }
 
         &::after {
-            transform: rotate(84deg);
+            transform: rotate(174deg);
         }
 
         &::before {
-            transform: rotate(-84deg);
+            transform: rotate(-174deg);
         }
     }
 
@@ -305,5 +318,35 @@ button {
         #nextState {
             flex: 0.7;
         }
+    }
+}
+
+@media screen and (max-width: @screen-sm-max) {
+    h1 {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .playersStatusCnt {
+        .deleted {
+            &::after, &::before {
+                // height: 100vw;
+                // left: 123px;
+                // top: -131px;
+            }
+        }
+        
+    }
+}
+
+@media screen and (min-width: @screen-md-min) {
+    .playersStatusCnt {
+        .deleted {
+            &::after, &::before {
+                // left: 221px;
+                // height: 500px;
+                // top: -221px;
+            }
+        }
+        
     }
 }
