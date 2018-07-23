@@ -199,6 +199,29 @@ var NIGHT_ROUND = {
         return "Error";
     },
 
+    _toText2: function _toText2(round) {
+        switch (round) {
+            case NIGHT_ROUND.Mafia:
+                return "Mafia";
+            case NIGHT_ROUND.Serialkiller:
+                return "Serialkillerul";
+            case NIGHT_ROUND.Vigilante:
+                return "Vigilentul";
+            case NIGHT_ROUND.Veteran:
+                return "Veteranul";
+            case NIGHT_ROUND.Police:
+                return "Politistii";
+            case NIGHT_ROUND.Doctor:
+                return "Doctorii";
+            case NIGHT_ROUND.Clown:
+                return "Mascariciul";
+            case NIGHT_ROUND.Town:
+                return "Orasul";
+        }
+
+        return "Error";
+    },
+
     _toRoundText: function _toRoundText(round) {
         switch (round) {
             case NIGHT_ROUND.Mafia:
@@ -365,7 +388,7 @@ var GameSetupPage = function (_React$Component2) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    NIGHT_ROUND._toText(round)
+                                    NIGHT_ROUND._toText2(round)
                                 ),
                                 React.createElement("div", null)
                             );
@@ -397,7 +420,9 @@ var PlayersSetupPage = function (_React$Component3) {
 
         var _this5 = _possibleConstructorReturn(this, (PlayersSetupPage.__proto__ || Object.getPrototypeOf(PlayersSetupPage)).call(this, props));
 
-        _this5.props.parent.state.players = [{ name: "Mafia 1", role: "Mafia", alive: true }, { name: "Mafia 2", role: "Mafia", alive: true }, { name: "Godfather", role: "Godfather", alive: true }, { name: "Policeman", role: "Policeman", alive: true }, { name: "Policeman 2", role: "Policeman", alive: true }, { name: "Veteran", role: "Veteran", alive: true, timesUsedBullet: 0 }, { name: "Vigilante", role: "Vigilante", alive: true }, { name: "Doctor", role: "Doctor", alive: true, timesSavedHimself: 0 }, { name: "Mayor", role: "Mayor", alive: true }, { name: "Clown", role: "Clown", alive: true }, { name: "Serialkiller", role: "Serialkiller", alive: true }];
+        if (window.debugMode) {
+            _this5.props.parent.state.players = [{ name: "Mafia 1", role: "Mafia", alive: true }, { name: "Mafia 2", role: "Mafia", alive: true }, { name: "Godfather", role: "Godfather", alive: true }, { name: "Policeman", role: "Policeman", alive: true }, { name: "Policeman 2", role: "Policeman", alive: true }, { name: "Veteran", role: "Veteran", alive: true, timesUsedBullet: 0 }, { name: "Vigilante", role: "Vigilante", alive: true }, { name: "Doctor", role: "Doctor", alive: true, timesSavedHimself: 0 }, { name: "Mayor", role: "Mayor", alive: true }, { name: "Clown", role: "Clown", alive: true }, { name: "Serialkiller", role: "Serialkiller", alive: true }];
+        }
         return _this5;
     }
 
@@ -575,6 +600,9 @@ var NightPage = function (_React$Component4) {
         _this7.getRoleAlive = _this7.getRoleAlive.bind(_this7);
         _this7.countSpecial = _this7.countSpecial.bind(_this7);
 
+        _this7.resetBetweenRounds = _this7.resetBetweenRounds.bind(_this7);
+        _this7.prepareForNextNight = _this7.prepareForNextNight.bind(_this7);
+
         _this7.getResultMessage = _this7.getResultMessage.bind(_this7);
         return _this7;
     }
@@ -633,6 +661,24 @@ var NightPage = function (_React$Component4) {
             }
 
             return count;
+        }
+    }, {
+        key: "resetBetweenRounds",
+        value: function resetBetweenRounds() {
+            this.state.selectedPlayer = null;
+            this.state.auxSelected = null;
+            this.state.auxUnique = false;
+            this.state.auxActivated = false;
+        }
+    }, {
+        key: "prepareForNextNight",
+        value: function prepareForNextNight() {
+            this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
+
+            if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
+                this.state.auxActivated = true;
+                this.state.auxUnique = true;
+            }
         }
     }, {
         key: "calculateNight",
@@ -762,9 +808,14 @@ var NightPage = function (_React$Component4) {
                     "div",
                     null,
                     player.name,
-                    " (",
-                    this.getNameIndex(player.name),
-                    ")"
+                    " ",
+                    window.debugMode && React.createElement(
+                        "span",
+                        null,
+                        "(",
+                        this.getNameIndex(player.name),
+                        ")"
+                    )
                 ),
                 React.createElement(
                     "div",
@@ -825,7 +876,7 @@ var NightPage = function (_React$Component4) {
                     var _result = this.props.parent.state.night[roundName];
                     if ((typeof _result === "undefined" ? "undefined" : _typeof(_result)) == 'object' && _result && _result.action == ROUND_ACTION.SELF_DEFENCE) {
                         ++count;
-                        message += "<b>" + this.props.parent.state.players[_result.id].name + "(" + this.props.parent.state.players[_result.id].role + ")</b>,";
+                        message += "<b>" + this.props.parent.state.players[_result.id].name + "(" + PLAYER_ROLES[this.props.parent.state.players[_result.id].role].text + ")</b>,";
                     }
                 }
 
@@ -842,7 +893,7 @@ var NightPage = function (_React$Component4) {
                     null,
                     this.props.parent.state.players[result.id].name,
                     "(",
-                    this.props.parent.state.players[result.id].role,
+                    PLAYER_ROLES[this.props.parent.state.players[result.id].role].text,
                     ")"
                 );
 
@@ -891,7 +942,7 @@ var NightPage = function (_React$Component4) {
                             null,
                             this.props.parent.state.players[result.id].name,
                             "(",
-                            this.props.parent.state.players[result.id].role,
+                            PLAYER_ROLES[this.props.parent.state.players[result.id].role].text,
                             ")"
                         ),
                         ")"
@@ -906,14 +957,14 @@ var NightPage = function (_React$Component4) {
                     React.createElement(
                         "span",
                         null,
-                        NIGHT_ROUND._toText(round),
+                        NIGHT_ROUND._toText2(round),
                         " au omorat pe ",
                         React.createElement(
                             "b",
                             null,
                             this.props.parent.state.players[result.id].name,
                             "(",
-                            this.props.parent.state.players[result.id].role,
+                            PLAYER_ROLES[this.props.parent.state.players[result.id].role].text,
                             ")"
                         )
                     )
@@ -925,14 +976,14 @@ var NightPage = function (_React$Component4) {
                     React.createElement(
                         "span",
                         null,
-                        NIGHT_ROUND._toText(round),
+                        NIGHT_ROUND._toText2(round),
                         " nu au reusit sa omoare pe nimeni (",
                         React.createElement(
                             "b",
                             null,
                             this.props.parent.state.players[result.id].name,
                             "(",
-                            this.props.parent.state.players[result.id].role,
+                            PLAYER_ROLES[this.props.parent.state.players[result.id].role].text,
                             ")"
                         ),
                         ")"
@@ -1248,7 +1299,22 @@ var NightPage = function (_React$Component4) {
                         "button",
                         {
                             id: "backState",
-                            onClick: function onClick() {}
+                            onClick: function onClick() {
+                                _this11.resetBetweenRounds();
+
+                                --_this11.props.parent.state.nightCurrentOrderIndex;
+                                if (_this11.props.parent.state.nightCurrentOrderIndex == -1) {
+                                    _this11.props.parent.state.isNight = false;
+                                    --_this11.props.parent.state.dayNumber;
+                                    _this11.props.parent.state.night = Object.assign({}, _this11.props.parent.state.lastNight);
+                                } else {
+                                    _this11.prepareForNextNight();
+                                }
+
+                                _this11.props.parent.setState(_this11.props.parent.state, function () {
+                                    window.scrollTo(0, 0);
+                                });
+                            }
                         },
                         "Inapoi"
                     ),
@@ -1305,23 +1371,18 @@ var NightPage = function (_React$Component4) {
                                     _this11.props.parent.state.night.doctorSelected = _this11.state.selectedPlayer || _this11.state.auxSelected;
                                 }
 
-                                _this11.state.selectedPlayer = null;
-                                _this11.state.auxSelected = null;
-                                _this11.state.auxUnique = false;
-                                _this11.state.auxActivated = false;
+                                _this11.resetBetweenRounds();
 
                                 ++_this11.props.parent.state.nightCurrentOrderIndex;
 
                                 if (_this11.props.parent.state.nightCurrentOrderIndex >= _this11.props.parent.state.nightOrder.length) {
                                     _this11.calculateNight();
+                                    _this11.props.parent.state.lastNight = Object.assign({}, _this11.props.parent.state.night);
                                     _this11.props.parent.state.isNight = false;
-                                } else {
-                                    _this11.props.parent.state.nightCurrentState = _this11.props.parent.state.nightOrder[_this11.props.parent.state.nightCurrentOrderIndex];
 
-                                    if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
-                                        _this11.state.auxActivated = true;
-                                        _this11.state.auxUnique = true;
-                                    }
+                                    _this11.props.parent.createHash();
+                                } else {
+                                    _this11.prepareForNextNight();
                                 }
 
                                 _this11.props.parent.setState(_this11.props.parent.state, function () {
@@ -1407,7 +1468,7 @@ var MainPage = function (_React$Component6) {
             nightCurrentState: null,
             nightCurrentOrderIndex: 0,
             night: null,
-            nights: []
+            lastNight: null
         };
 
         _this13.createHash = _this13.createHash.bind(_this13);
@@ -1419,46 +1480,29 @@ var MainPage = function (_React$Component6) {
         value: function componentDidMount() {
             var _this14 = this;
 
-            var decodedURI = decodeURIComponent(window.location.hash);
-            var token1 = decodedURI.indexOf("&&");
+            window.packCompresser = window.JsonUrl('pack'); // JsonUrl is added to the window object
 
-            if (token1 == -1) return;
+            if (window.location.hash) {
+                window.packCompresser.decompress(window.location.hash).then(function (json) {
+                    Object.assign(_this14.state, json);
 
-            var playersString = decodedURI.substring(1, token1);
-            console.log("playersString", playersString);
+                    _this14.state.lastNight = Object.assign({}, _this14.state.night);
 
-            var players = playersString.split("&");
-
-            var _loop = function _loop(i, length) {
-                var chars = players[i].split("|");
-
-                console.log(players[i], chars);
-
-                _this14.state.players.push({
-                    name: chars[0],
-                    role: Object.keys(PLAYER_ROLES).filter(function (role) {
-                        return PLAYER_ROLES[role].id == chars[1];
-                    })[0],
-                    alive: chars[2] == "1" ? true : false
+                    _this14.state.gameStep = GAME_STEP.NIGHT;
+                    _this14.setState(_this14.state);
                 });
-            };
-
-            for (var i = 0, length = players.length; i < length; ++i) {
-                _loop(i, length);
             }
-
-            console.log(this.state.players);
-
-            var token2 = decodedURI.indexOf("&&", token1 + 1);
-            this.state.day = parseInt(decodedURI.substring(token1 + 2, token2));
-
-            this.state.gameStep = GAME_STEP.NIGHT;
-            this.setState(this.state);
         }
     }, {
         key: "createHash",
         value: function createHash() {
-            window.location.hash = createHashFromPlayers(this.state.players) + "&" + this.state.dayNumber + "&&";
+            window.packCompresser.compress({
+                players: this.state.players,
+                night: this.state.night,
+                dayNumber: this.state.dayNumber
+            }).then(function (output) {
+                return window.location.hash = output;
+            });
         }
     }, {
         key: "render",
@@ -1505,7 +1549,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '40707' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '39931' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

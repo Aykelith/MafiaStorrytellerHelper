@@ -75,6 +75,21 @@ const NIGHT_ROUND = {
         return "Error";
     },
 
+    _toText2: (round) => {
+        switch (round) {
+            case NIGHT_ROUND.Mafia: return "Mafia";
+            case NIGHT_ROUND.Serialkiller: return "Serialkillerul";
+            case NIGHT_ROUND.Vigilante: return "Vigilentul";
+            case NIGHT_ROUND.Veteran: return "Veteranul";
+            case NIGHT_ROUND.Police: return "Politistii";
+            case NIGHT_ROUND.Doctor: return "Doctorii";
+            case NIGHT_ROUND.Clown: return "Mascariciul";
+            case NIGHT_ROUND.Town: return "Orasul";
+        }
+
+        return "Error";
+    },
+
     _toRoundText: (round) => {
         switch (round) {
             case NIGHT_ROUND.Mafia: return "Runda mafiotilor";
@@ -181,7 +196,7 @@ class GameSetupPage extends React.Component {
                             this.props.parent.state.nightOrder.map(round => {
                                 return (
                                     <div key={`round${round}`}>
-                                        <span>{NIGHT_ROUND._toText(round)}</span>
+                                        <span>{NIGHT_ROUND._toText2(round)}</span>
                                         <div>
                                             
                                         </div>
@@ -208,19 +223,21 @@ class PlayersSetupPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.props.parent.state.players = [
-            { name: "Mafia 1", role: "Mafia", alive: true },
-            { name: "Mafia 2", role: "Mafia", alive: true },
-            { name: "Godfather", role: "Godfather", alive: true },
-            { name: "Policeman", role: "Policeman", alive: true },
-            { name: "Policeman 2", role: "Policeman", alive: true },
-            { name: "Veteran", role: "Veteran", alive: true, timesUsedBullet: 0 },
-            { name: "Vigilante", role: "Vigilante", alive: true },
-            { name: "Doctor", role: "Doctor", alive: true, timesSavedHimself: 0 },
-            { name: "Mayor", role: "Mayor", alive: true },
-            { name: "Clown", role: "Clown", alive: true },
-            { name: "Serialkiller", role: "Serialkiller", alive: true }
-        ]
+        if (window.debugMode) {
+            this.props.parent.state.players = [
+                { name: "Mafia 1", role: "Mafia", alive: true },
+                { name: "Mafia 2", role: "Mafia", alive: true },
+                { name: "Godfather", role: "Godfather", alive: true },
+                { name: "Policeman", role: "Policeman", alive: true },
+                { name: "Policeman 2", role: "Policeman", alive: true },
+                { name: "Veteran", role: "Veteran", alive: true, timesUsedBullet: 0 },
+                { name: "Vigilante", role: "Vigilante", alive: true },
+                { name: "Doctor", role: "Doctor", alive: true, timesSavedHimself: 0 },
+                { name: "Mayor", role: "Mayor", alive: true },
+                { name: "Clown", role: "Clown", alive: true },
+                { name: "Serialkiller", role: "Serialkiller", alive: true }
+            ]
+        }
     }
     
     render() {
@@ -339,6 +356,9 @@ class NightPage extends React.Component {
         this.getNameIndex = this.getNameIndex.bind(this);
         this.getRoleAlive = this.getRoleAlive.bind(this);
         this.countSpecial = this.countSpecial.bind(this);
+
+        this.resetBetweenRounds = this.resetBetweenRounds.bind(this);
+        this.prepareForNextNight = this.prepareForNextNight.bind(this);
         
         this.getResultMessage = this.getResultMessage.bind(this);
     }
@@ -375,6 +395,22 @@ class NightPage extends React.Component {
         } 
 
         return count;
+    }
+
+    resetBetweenRounds() {
+        this.state.selectedPlayer = null;
+        this.state.auxSelected = null;
+        this.state.auxUnique = false;
+        this.state.auxActivated = false;
+    }
+
+    prepareForNextNight() {
+        this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
+
+        if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
+            this.state.auxActivated = true;
+            this.state.auxUnique = true;
+        }
     }
 
     calculateNight() {
@@ -497,7 +533,7 @@ class NightPage extends React.Component {
     renderPlayer(player, settings) {
         return (
             <div onClick={settings.onClick} className={`${player.role} ${settings.className || ""}`}>
-                <div>{player.name} ({this.getNameIndex(player.name)})</div>
+                <div>{player.name} {window.debugMode && <span>({this.getNameIndex(player.name)})</span>}</div>
                 <div>{settings.role ? settings.role(player) : PLAYER_ROLES[player.role].text}</div>
             </div>
         )
@@ -529,7 +565,7 @@ class NightPage extends React.Component {
                 let _result = this.props.parent.state.night[roundName];
                 if (typeof _result == 'object' && _result && _result.action == ROUND_ACTION.SELF_DEFENCE) {
                     ++count;
-                    message += `<b>${this.props.parent.state.players[_result.id].name}(${this.props.parent.state.players[_result.id].role})</b>,`;
+                    message += `<b>${this.props.parent.state.players[_result.id].name}(${PLAYER_ROLES[this.props.parent.state.players[_result.id].role].text})</b>,`;
                 }
             }
 
@@ -537,7 +573,7 @@ class NightPage extends React.Component {
         }
 
         if (round == NIGHT_ROUND.Doctor) {
-            let person = <b>{this.props.parent.state.players[result.id].name}({this.props.parent.state.players[result.id].role})</b>;
+            let person = <b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b>;
 
             for (let roundName in this.props.parent.state.night) {
                 let _result = this.props.parent.state.night[roundName];
@@ -550,13 +586,13 @@ class NightPage extends React.Component {
         }
 
         if (round == NIGHT_ROUND.Police) {
-            return <div className={className}><span>Politistii au ales si a iesit {result.police == ROUND_ACTION.GUILTY ? "necurat" : "curat"} (<b>{this.props.parent.state.players[result.id].name}({this.props.parent.state.players[result.id].role})</b>)</span></div>
+            return <div className={className}><span>Politistii au ales si a iesit {result.police == ROUND_ACTION.GUILTY ? "necurat" : "curat"} (<b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b>)</span></div>
         }
 
         if (result.action == ROUND_ACTION.KILLED_IN_NIGHT) {
-            return <div className={className}><span>{NIGHT_ROUND._toText(round)} au omorat pe <b>{this.props.parent.state.players[result.id].name}({this.props.parent.state.players[result.id].role})</b></span></div>;
+            return <div className={className}><span>{NIGHT_ROUND._toText2(round)} au omorat pe <b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b></span></div>;
         } else if (result.action == ROUND_ACTION.SAVED_BY_DOCTOR || result.action == ROUND_ACTION.SELF_DEFENCE) {
-            return <div className={className}><span>{NIGHT_ROUND._toText(round)} nu au reusit sa omoare pe nimeni (<b>{this.props.parent.state.players[result.id].name}({this.props.parent.state.players[result.id].role})</b>)</span></div>;
+            return <div className={className}><span>{NIGHT_ROUND._toText2(round)} nu au reusit sa omoare pe nimeni (<b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b>)</span></div>;
         }
 
         return null;
@@ -833,7 +869,18 @@ class NightPage extends React.Component {
                     <button
                         id="backState"
                         onClick={() => {
+                            this.resetBetweenRounds();
 
+                            --this.props.parent.state.nightCurrentOrderIndex;
+                            if (this.props.parent.state.nightCurrentOrderIndex == -1) {
+                                this.props.parent.state.isNight = false;
+                                --this.props.parent.state.dayNumber;
+                                this.props.parent.state.night = Object.assign({}, this.props.parent.state.lastNight);
+                            } else {
+                                this.prepareForNextNight();
+                            }
+
+                            this.props.parent.setState(this.props.parent.state, () => { window.scrollTo(0,0); });
                         }}
                     >
                         Inapoi
@@ -890,23 +937,18 @@ class NightPage extends React.Component {
                                 this.props.parent.state.night.doctorSelected = this.state.selectedPlayer || this.state.auxSelected;
                             }
 
-                            this.state.selectedPlayer = null;
-                            this.state.auxSelected = null;
-                            this.state.auxUnique = false;
-                            this.state.auxActivated = false;
+                            this.resetBetweenRounds();
 
                             ++this.props.parent.state.nightCurrentOrderIndex;
 
                             if (this.props.parent.state.nightCurrentOrderIndex >= this.props.parent.state.nightOrder.length) {
                                 this.calculateNight();
+                                this.props.parent.state.lastNight = Object.assign({}, this.props.parent.state.night);
                                 this.props.parent.state.isNight = false;
-                            } else {
-                                this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
 
-                                if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
-                                    this.state.auxActivated = true;
-                                    this.state.auxUnique = true;
-                                }
+                                this.props.parent.createHash();
+                            } else {
+                                this.prepareForNextNight();
                             }
                             
                             this.props.parent.setState(this.props.parent.state, () => { window.scrollTo(0,0); });
@@ -958,45 +1000,36 @@ class MainPage extends React.Component {
             nightCurrentState: null,
             nightCurrentOrderIndex: 0,
             night: null,
-            nights: []
+            lastNight: null
         };
 
         this.createHash = this.createHash.bind(this);
     }
 
     componentDidMount() {
-        let decodedURI = decodeURIComponent(window.location.hash);
-        let token1 = decodedURI.indexOf("&&");
+        window.packCompresser = window.JsonUrl('pack'); // JsonUrl is added to the window object
 
-        if (token1 == -1) return; 
-        
-        let playersString = decodedURI.substring(1, token1);
-        console.log("playersString", playersString);
+        if (window.location.hash) {
+            window.packCompresser.decompress(window.location.hash)
+                .then(json => { 
+                    Object.assign(this.state, json);
 
-        let players = playersString.split("&");
-        for (let i=0, length=players.length; i < length; ++i) {
-            let chars = players[i].split("|");
+                    this.state.lastNight = Object.assign({}, this.state.night);
 
-            console.log(players[i], chars);
-
-            this.state.players.push({
-                name: chars[0],
-                role: Object.keys(PLAYER_ROLES).filter(role => PLAYER_ROLES[role].id == chars[1])[0],
-                alive: chars[2] == "1" ? true : false
-            });
+                    this.state.gameStep = GAME_STEP.NIGHT;
+                    this.setState(this.state);
+                });
         }
-
-        console.log(this.state.players);
-
-        let token2 = decodedURI.indexOf("&&", token1 + 1);
-        this.state.day = parseInt(decodedURI.substring(token1 + 2, token2));
-
-        this.state.gameStep = GAME_STEP.NIGHT;
-        this.setState(this.state);
     }
 
     createHash() {
-        window.location.hash = createHashFromPlayers(this.state.players) + "&" + this.state.dayNumber + "&&";
+        window.packCompresser.compress(
+            { 
+                players: this.state.players, 
+                night: this.state.night,
+                dayNumber: this.state.dayNumber
+            }
+        ).then(output => window.location.hash = output);
     }
 
     render() {
