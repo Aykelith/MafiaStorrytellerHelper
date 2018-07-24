@@ -669,11 +669,12 @@ var NightPage = function (_React$Component4) {
             this.state.auxSelected = null;
             this.state.auxUnique = false;
             this.state.auxActivated = false;
+            this.state.veteranButton = null;
         }
     }, {
         key: "prepareForNextNight",
-        value: function prepareForNextNight() {
-            this.props.parent.state.nightCurrentState = this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
+        value: function prepareForNextNight(vampireMode) {
+            this.props.parent.state.nightCurrentState = vampireMode ? NIGHT_ROUND.Clown : this.props.parent.state.nightOrder[this.props.parent.state.nightCurrentOrderIndex];
 
             if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
                 this.state.auxActivated = true;
@@ -684,8 +685,11 @@ var NightPage = function (_React$Component4) {
         key: "calculateNight",
         value: function calculateNight() {
             var night = this.props.parent.state.night;
+            night.veteranKills = [];
 
             var veteranUsedTheBullet = false;
+
+            console.log("NIGHT", night);
 
             if (night.townSelected != null) {
                 console.log("TOWN", night.townSelected, this.props.parent.state.players[night.townSelected]);
@@ -694,6 +698,7 @@ var NightPage = function (_React$Component4) {
 
             if (night.mafiaSelected != null) {
                 console.log("MAFIA", night.mafiaSelected, this.props.parent.state.players[night.mafiaSelected]);
+                var action = void 0;
                 if (this.wasSelfDefence(night.mafiaSelected)) {
                     console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
                     if (!veteranUsedTheBullet) {
@@ -702,19 +707,26 @@ var NightPage = function (_React$Component4) {
                     }
 
                     var id = this.getRoleIndex('Godfather');
+                    night.veteranKills.push(id);
+
                     this.props.parent.state.players[id].alive = false;
-                    night.mafiaSelected = { id: night.mafiaSelected, action: ROUND_ACTION.SELF_DEFENCE };
+
+                    action = ROUND_ACTION.SELF_DEFENCE;
                 } else if (this.wasProtectedByDoctor(night.mafiaSelected)) {
                     console.log("   ", "WAS PROTECTED BY DOCTOR");
-                    night.mafiaSelected = { id: night.mafiaSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                    action = ROUND_ACTION.SAVED_BY_DOCTOR;
                 } else {
                     this.props.parent.state.players[night.mafiaSelected].alive = false;
-                    night.mafiaSelected = { id: night.mafiaSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                    action = ROUND_ACTION.KILLED_IN_NIGHT;
                 }
+
+                night.mafiaSelected = { id: night.mafiaSelected, action: action };
             }
 
             if (night.serialkillerSelected != null) {
                 console.log("SERIALKILLER", night.serialkillerSelected, this.props.parent.state.players[night.serialkillerSelected]);
+
+                var _action = void 0;
                 if (this.wasSelfDefence(night.serialkillerSelected)) {
                     console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
                     if (!veteranUsedTheBullet) {
@@ -723,19 +735,26 @@ var NightPage = function (_React$Component4) {
                     }
 
                     var _id = this.getRoleIndex('Serialkiller');
+                    night.veteranKills.push(_id);
+
                     this.props.parent.state.players[_id].alive = false;
-                    night.serialkillerSelected = { id: night.serialkillerSelected, action: ROUND_ACTION.SELF_DEFENCE };
+
+                    _action = ROUND_ACTION.SELF_DEFENCE;
                 } else if (this.wasProtectedByDoctor(night.serialkillerSelected)) {
                     console.log("   ", "WAS PROTECTED BY DOCTOR");
-                    night.serialkillerSelected = { id: night.serialkillerSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                    _action = ROUND_ACTION.SAVED_BY_DOCTOR;
                 } else {
                     this.props.parent.state.players[night.serialkillerSelected].alive = false;
-                    night.serialkillerSelected = { id: night.serialkillerSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                    _action = ROUND_ACTION.KILLED_IN_NIGHT;
                 }
+
+                night.serialkillerSelected = { id: night.serialkillerSelected, action: _action };
             }
 
             if (night.vigilanteSelected != null) {
                 console.log("VIGILANTE", night.vigilanteSelected, this.props.parent.state.players[night.vigilanteSelected]);
+
+                var _action2 = void 0;
                 if (this.wasSelfDefence(night.vigilanteSelected)) {
                     console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet);
                     if (!veteranUsedTheBullet) {
@@ -744,22 +763,31 @@ var NightPage = function (_React$Component4) {
                     }
 
                     var _id2 = this.getRoleIndex('Vigilante');
+                    night.veteranKills.push(_id2);
+
                     this.props.parent.state.players[_id2].alive = false;
-                    night.vigilanteSelected = { id: night.vigilanteSelected, action: ROUND_ACTION.SELF_DEFENCE };
+
+                    _action2 = ROUND_ACTION.SELF_DEFENCE;
                 } else if (this.wasProtectedByDoctor(night.vigilanteSelected)) {
                     console.log("   ", "WAS PROTECTED BY DOCTOR");
-                    night.vigilanteSelected = { id: night.vigilanteSelected, action: ROUND_ACTION.SAVED_BY_DOCTOR };
+                    _action2 = ROUND_ACTION.SAVED_BY_DOCTOR;
                 } else {
                     this.props.parent.state.players[night.vigilanteSelected].alive = false;
-                    night.vigilanteSelected = { id: night.vigilanteSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
+                    _action2 = ROUND_ACTION.KILLED_IN_NIGHT;
                 }
+
+                night.vigilanteSelected = { id: night.vigilanteSelected, action: _action2 };
+            }
+
+            if (night.clownSelected != null) {
+                console.log("CLOWN POWER");
+                night.clownSelected = { id: night.clownSelected, action: ROUND_ACTION.KILLED_IN_NIGHT };
             }
 
             if (night.policeSelected != null) {
                 console.log("POLICE", night.policeSelected, this.props.parent.state.players[night.policeSelected]);
 
-                night.policeSelected = { id: night.policeSelected, police: this.isGuilty(night.policeSelected) ? ROUND_ACTION.GUILTY : ROUND_ACTION.INNOCENT };
-
+                var _action3 = void 0;
                 if (this.wasSelfDefence(night.policeSelected)) {
                     console.log("   ", "WAS SELF DEFENCE", veteranUsedTheBullet, night.policeVeteranSelected, this.props.parent.state.players[night.policeVeteranSelected]);
                     if (!veteranUsedTheBullet) {
@@ -768,10 +796,12 @@ var NightPage = function (_React$Component4) {
                     }
 
                     this.props.parent.state.players[night.policeVeteranSelected].alive = false;
-                    night.policeSelected.action = ROUND_ACTION.SELF_DEFENCE;
+                    _action3 = ROUND_ACTION.SELF_DEFENCE;
                 } else {
-                    night.policeSelected.action = 999;
+                    _action3 = 999;
                 }
+
+                night.policeSelected = { id: night.policeSelected, police: this.isGuilty(night.policeSelected) ? ROUND_ACTION.GUILTY : ROUND_ACTION.INNOCENT, action: _action3 };
             }
 
             if (night.doctorSelected != null) {
@@ -871,13 +901,19 @@ var NightPage = function (_React$Component4) {
             if (round == NIGHT_ROUND.Veteran) {
                 var message = "Veteranul si-a folosit glontul si-a omorat pe: ";
 
-                var count = 0;
-                for (var roundName in this.props.parent.state.night) {
-                    var _result = this.props.parent.state.night[roundName];
-                    if ((typeof _result === "undefined" ? "undefined" : _typeof(_result)) == 'object' && _result && _result.action == ROUND_ACTION.SELF_DEFENCE) {
-                        ++count;
-                        message += "<b>" + this.props.parent.state.players[_result.id].name + "(" + PLAYER_ROLES[this.props.parent.state.players[_result.id].role].text + ")</b>,";
-                    }
+                var count = this.props.parent.state.night.veteranKills.length;
+                for (var i = 0, length = this.props.parent.state.night.veteranKills.length; i < length; ++i) {
+                    message += "<b>" + this.props.parent.state.players[this.props.parent.state.night.veteranKills[i]].name + "(" + PLAYER_ROLES[this.props.parent.state.players[this.props.parent.state.night.veteranKills[i]].role].text + ")</b>,";
+                }
+
+                if (this.props.parent.state.night.policeVeteranSelected) {
+                    ++count;
+                    message += "<b>" + this.props.parent.state.players[this.props.parent.state.night.policeVeteranSelected].name + "(" + PLAYER_ROLES[this.props.parent.state.players[this.props.parent.state.night.policeVeteranSelected].role].text + ")</b>,";
+                }
+
+                if (this.props.parent.state.night.doctorVeteranSelected) {
+                    ++count;
+                    message += "<b>" + this.props.parent.state.players[this.props.parent.state.night.doctorVeteranSelected].name + "(" + PLAYER_ROLES[this.props.parent.state.players[this.props.parent.state.night.doctorVeteranSelected].role].text + ")</b>,";
                 }
 
                 return React.createElement(
@@ -897,9 +933,9 @@ var NightPage = function (_React$Component4) {
                     ")"
                 );
 
-                for (var _roundName in this.props.parent.state.night) {
-                    var _result2 = this.props.parent.state.night[_roundName];
-                    if ((typeof _result2 === "undefined" ? "undefined" : _typeof(_result2)) == 'object' && _result2 && _result2.action == ROUND_ACTION.SAVED_BY_DOCTOR) {
+                for (var roundName in this.props.parent.state.night) {
+                    var _result = this.props.parent.state.night[roundName];
+                    if ((typeof _result === "undefined" ? "undefined" : _typeof(_result)) == 'object' && _result && _result.action == ROUND_ACTION.SAVED_BY_DOCTOR) {
                         return React.createElement(
                             "div",
                             { className: className },
@@ -1023,7 +1059,8 @@ var NightPage = function (_React$Component4) {
                     this.getResultMessage(NIGHT_ROUND.Police, this.props.parent.state.night.policeSelected, "Policeman"),
                     this.getResultMessage(NIGHT_ROUND.Vigilante, this.props.parent.state.night.vigilanteSelected, "Vigilante"),
                     this.getResultMessage(NIGHT_ROUND.Doctor, this.props.parent.state.night.doctorSelected, "Doctor"),
-                    this.getResultMessage(NIGHT_ROUND.Veteran, this.props.parent.state.night.veteranSelected, "Veteran")
+                    this.getResultMessage(NIGHT_ROUND.Veteran, this.props.parent.state.night.veteranSelected, "Veteran"),
+                    this.getResultMessage(NIGHT_ROUND.Clown, this.props.parent.state.night.clownSelected, "Clown")
                 ),
                 React.createElement(
                     "div",
@@ -1060,6 +1097,10 @@ var NightPage = function (_React$Component4) {
                             _this8.props.parent.state.night = { townSelected: _this8.state.selectedPlayer };
                             if (_this8.state.selectedPlayer) {
                                 _this8.props.parent.state.players[_this8.state.selectedPlayer].alive = false;
+
+                                if (_this8.props.parent.state.players[_this8.state.selectedPlayer].role == "Clown") {
+                                    _this8.state.vampireMode = true;
+                                }
                             }
 
                             _this8.state.selectedPlayer = null;
@@ -1271,7 +1312,7 @@ var NightPage = function (_React$Component4) {
                         });
                     })
                 ),
-                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", required: true, playersLength: currentRoundPlayers.length }),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Mafia && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", playersLength: currentRoundPlayers.length }),
                 this.props.parent.state.nightCurrentState == NIGHT_ROUND.Serialkiller && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", playersLength: currentRoundPlayers.length }),
                 this.props.parent.state.nightCurrentState == NIGHT_ROUND.Police && this.renderSelectable({
                     title: "Posibili criminali",
@@ -1292,6 +1333,7 @@ var NightPage = function (_React$Component4) {
                 this.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)", playersLength: currentRoundPlayers.length }),
                 this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)", playersLength: currentRoundPlayers.length }),
                 this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran && this.renderVeteran(),
+                this.props.parent.state.nightCurrentState == NIGHT_ROUND.Clown && this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima)", playersLength: 1 }),
                 React.createElement(
                     "div",
                     { id: "buttonsCnt" },
@@ -1350,7 +1392,7 @@ var NightPage = function (_React$Component4) {
                                 } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante) {
                                     _this11.props.parent.state.night.vigilanteSelected = _this11.state.selectedPlayer;
                                 } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran) {
-                                    if (_this11.props.parent.state.night.veteranSelected === undefined) {
+                                    if (!_this11.state.veteranButton || _this11.props.parent.state.night.veteranSelected === undefined) {
                                         return alert("Selecteaza DA sau NU");
                                     }
 
@@ -1362,6 +1404,8 @@ var NightPage = function (_React$Component4) {
                                         if (_this11.props.parent.state.night.doctorSelected == _this11.props.parent.state.night.veteranSelected && _this11.getRoleAlive(NIGHT_ROUND.Doctor).length > 1 && !_this11.props.parent.state.night.doctorVeteranSelected) {
                                             return alert("Selecteaza un doctor");
                                         }
+
+                                        console.log("police", _this11.props.parent.state.night.policeVeteranSelected);
                                     }
                                 } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
                                     if (currentRoundPlayers.length > 0 && _this11.state.selectedPlayer == null && _this11.state.auxSelected == null) {
@@ -1369,6 +1413,14 @@ var NightPage = function (_React$Component4) {
                                     }
 
                                     _this11.props.parent.state.night.doctorSelected = _this11.state.selectedPlayer || _this11.state.auxSelected;
+                                } else if (_this11.props.parent.state.nightCurrentState == NIGHT_ROUND.Clown) {
+                                    if (_this11.state.selectedPlayer == null) {
+                                        return alert("Selecteaza un jucator");
+                                    }
+
+                                    _this11.props.parent.state.night.clownSelected = _this11.state.selectedPlayer;
+                                    _this11.state.vampireMode = false;
+                                    console.log("CLOOOWN");
                                 }
 
                                 _this11.resetBetweenRounds();
@@ -1376,11 +1428,15 @@ var NightPage = function (_React$Component4) {
                                 ++_this11.props.parent.state.nightCurrentOrderIndex;
 
                                 if (_this11.props.parent.state.nightCurrentOrderIndex >= _this11.props.parent.state.nightOrder.length) {
-                                    _this11.calculateNight();
-                                    _this11.props.parent.state.lastNight = Object.assign({}, _this11.props.parent.state.night);
-                                    _this11.props.parent.state.isNight = false;
+                                    if (_this11.state.vampireMode) {
+                                        _this11.prepareForNextNight(true);
+                                    } else {
+                                        _this11.calculateNight();
+                                        _this11.props.parent.state.lastNight = Object.assign({}, _this11.props.parent.state.night);
+                                        _this11.props.parent.state.isNight = false;
 
-                                    _this11.props.parent.createHash();
+                                        _this11.props.parent.createHash();
+                                    }
                                 } else {
                                     _this11.prepareForNextNight();
                                 }
@@ -1549,7 +1605,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '39931' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '36997' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
