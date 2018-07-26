@@ -43,6 +43,10 @@ const PLAYER_ROLES = {
     Clown: {
         text: "Mascarici",
         id: 8
+    },
+    Citizen: {
+        text: "Cetatean",
+        id: 9
     }
 };
 
@@ -125,7 +129,8 @@ const ROUND_ACTION = {
     LYNCHED: 2,
     SELF_DEFENCE: 3,
     GUILTY: 4,
-    INNOCENT: 5
+    INNOCENT: 5,
+    NOTHING: 6
 }
 
 const DEFAULT_ROUNDS_ORDER = [ 
@@ -139,7 +144,7 @@ const DEFAULT_ROUNDS_ORDER = [
 
 const DEFAULT_PLAYER = {
     name: "",
-    role: -1,
+    role: "Citizen",
     alive: true
 };
 
@@ -249,8 +254,16 @@ class PlayersSetupPage extends React.Component {
                     <input
                         type="number"
                         value={this.props.parent.state.players.length}
+                        onClick={e => e.target.select()}
                         onChange={e => {
-                            this.props.parent.state.players.length = parseInt(e.target.value);
+                            const value = parseInt(e.target.value);
+
+                            if (value == 0) {
+                                this.props.parent.state.players = [];
+                                return;
+                            }
+
+                            this.props.parent.state.players.length = value;
 
                             for (let i=0, length = this.props.parent.state.players.length; i < length; ++i) {
                                 if (!this.props.parent.state.players[i]) {
@@ -293,18 +306,17 @@ class PlayersSetupPage extends React.Component {
                                                 onChange={e => {
                                                     this.props.parent.state.players[index].role = e.target.value;
 
-                                                    if (e.target.value == PLAYER_ROLES.Doctor) {
+                                                    if (e.target.value == "Doctor") {
                                                         this.props.parent.state.players[index].timesSavedHimself = 0;
                                                     }
 
-                                                    if (e.target.value == PLAYER_ROLES.Veteran) {
+                                                    if (e.target.value == "Veteran") {
                                                         this.props.parent.state.players[index].timesUsedBullet = 0;
                                                     }
 
                                                     this.props.parent.setState(this.props.parent.state);
                                                 }}
                                             >
-                                                <option value={-1}>Niciun rol</option>
                                                 {
                                                     Object.keys(PLAYER_ROLES).map(role => {
                                                         return <option key={role} value={role}>{PLAYER_ROLES[role].text}</option>;
@@ -447,8 +459,14 @@ class NightPage extends React.Component {
                 console.log("   ", "WAS PROTECTED BY DOCTOR");
                 action = ROUND_ACTION.SAVED_BY_DOCTOR;
             } else {
-                this.props.parent.state.players[night.mafiaSelected].alive = false;
-                action = ROUND_ACTION.KILLED_IN_NIGHT;
+                let selectedPlayerRole = this.props.parent.state.players[night.mafiaSelected].role;
+
+                if (selectedPlayerRole == "Serialkiller") {
+                    action = ROUND_ACTION.NOTHING;
+                } else {
+                    this.props.parent.state.players[night.mafiaSelected].alive = false;
+                    action = ROUND_ACTION.KILLED_IN_NIGHT;
+                }
             }
 
             night.mafiaSelected = { id: night.mafiaSelected, action: action };
@@ -475,8 +493,14 @@ class NightPage extends React.Component {
                 console.log("   ", "WAS PROTECTED BY DOCTOR");
                 action = ROUND_ACTION.SAVED_BY_DOCTOR;
             } else {
-                this.props.parent.state.players[night.serialkillerSelected].alive = false;
-                action = ROUND_ACTION.KILLED_IN_NIGHT;
+                let selectedPlayerRole = this.props.parent.state.players[night.serialkillerSelected].role;
+
+                if (selectedPlayerRole == "Mafia" || selectedPlayerRole == "Godfather") {
+                    action = ROUND_ACTION.NOTHING;
+                } else {
+                    this.props.parent.state.players[night.serialkillerSelected].alive = false;
+                    action = ROUND_ACTION.KILLED_IN_NIGHT;
+                }
             }
 
             night.serialkillerSelected = { id: night.serialkillerSelected, action: action };
@@ -629,6 +653,10 @@ class NightPage extends React.Component {
             return <div className={className}><span>{NIGHT_ROUND._toText2(round)} au omorat pe <b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b></span></div>;
         } else if (result.action == ROUND_ACTION.SAVED_BY_DOCTOR || result.action == ROUND_ACTION.SELF_DEFENCE) {
             return <div className={className}><span>{NIGHT_ROUND._toText2(round)} nu au reusit sa omoare pe nimeni (<b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b>)</span></div>;
+        }
+
+        if (result.action == ROUND_ACTION.NOTHING) {
+            return <div className={className}><span>{NIGHT_ROUND._toText2(round)} nu au omorat pe nimeni (<b>{this.props.parent.state.players[result.id].name}({PLAYER_ROLES[this.props.parent.state.players[result.id].role].text})</b>)</span></div>
         }
 
         return null;
@@ -886,7 +914,7 @@ class NightPage extends React.Component {
                         filter: (player1, player2) => roleIsInnocent(player1.role) > roleIsInnocent(player2.role),
                         className: (player, index) => roleIsInnocent(player.role) ? "innocent" : "guilty",
                         player: {
-                            role: (player) => roleIsInnocent(player.role) ? "Inocent" : "Vinovant"
+                            role: (player) => `${roleIsInnocent(player.role) ? "Inocent" : "Vinovant"} (${PLAYER_ROLES[player.role].text})`
                         }, 
                         playersLength: currentRoundPlayers.length 
                     })
@@ -902,7 +930,7 @@ class NightPage extends React.Component {
                     this.renderSelectable({ title: "Posibile victime", subtitle: "(selecteaza o victima sau nu)", playersLength: currentRoundPlayers.length })
                 }
                 {
-                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran
+                    this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran && currentRoundPlayers.length > 0
                     &&
                     this.renderVeteran()
                 }
@@ -962,20 +990,22 @@ class NightPage extends React.Component {
                             } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Vigilante) {
                                 this.props.parent.state.night.vigilanteSelected = this.state.selectedPlayer;
                             } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Veteran) {
-                                if (!this.state.veteranButton || this.props.parent.state.night.veteranSelected === undefined) {
-                                    return alert("Selecteaza DA sau NU");
-                                }
-
-                                if (this.props.parent.state.night.veteranSelected) {
-                                    if (this.props.parent.state.night.policeSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Police).length > 1 && !this.props.parent.state.night.policeVeteranSelected) {
-                                        return alert("Selecteaza un politist");
+                                if (currentRoundPlayers.length > 0) {
+                                    if (!this.state.veteranButton || this.props.parent.state.night.veteranSelected === undefined) {
+                                        return alert("Selecteaza DA sau NU");
                                     }
-
-                                    if (this.props.parent.state.night.doctorSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Doctor).length > 1 && !this.props.parent.state.night.doctorVeteranSelected) {
-                                        return alert("Selecteaza un doctor");
+    
+                                    if (this.props.parent.state.night.veteranSelected) {
+                                        if (this.props.parent.state.night.policeSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Police).length > 1 && !this.props.parent.state.night.policeVeteranSelected) {
+                                            return alert("Selecteaza un politist");
+                                        }
+    
+                                        if (this.props.parent.state.night.doctorSelected == this.props.parent.state.night.veteranSelected && this.getRoleAlive(NIGHT_ROUND.Doctor).length > 1 && !this.props.parent.state.night.doctorVeteranSelected) {
+                                            return alert("Selecteaza un doctor");
+                                        }
+    
+                                        console.log("police", this.props.parent.state.night.policeVeteranSelected);
                                     }
-
-                                    console.log("police", this.props.parent.state.night.policeVeteranSelected);
                                 }
                             } else if (this.props.parent.state.nightCurrentState == NIGHT_ROUND.Doctor) {
                                 if (currentRoundPlayers.length > 0 && this.state.selectedPlayer == null && this.state.auxSelected == null) {
