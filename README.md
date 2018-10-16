@@ -1,7 +1,7 @@
 MafiaStoryTeller
 ===
 
-A tool for helping the narrator for the socialing game Mafia.
+A tool for helping the narrator for the socializing game Mafia.
 
 
 With the support of:
