@@ -184,7 +184,7 @@ class WelcomePage extends React.Component {
                 >
                     Generator
                 </button>
-                <div id="browserStackCnt"><a href="https://www.browserstack.com/" rel="noopener noreferrer" target="_blank"><img src="imgs/Browserstack-logo.svg"/></a></div>
+                <div id="browserStackCnt">With the support of:<br/><a href="https://www.browserstack.com/" rel="noopener noreferrer" target="_blank"><img src="imgs/Browserstack-logo.svg"/></a></div>
             </div>
         );
     }
